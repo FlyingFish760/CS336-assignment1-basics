@@ -1,0 +1,60 @@
+{
+  "os":  "Windows-10-10.0.19045-SP0",
+  "python":  "CPython 3.12.9",
+  "startedAt":  "2025-12-17T10:38:33.688249Z",
+  "args":  [
+    "--num_step",
+    "100",
+    "--save_steps",
+    "50",
+    "--log_steps",
+    "10",
+    "--vocab_size",
+    "128",
+    "--d_model",
+    "64",
+    "--num_heads",
+    "4",
+    "--d_ff",
+    "128",
+    "--context_length",
+    "64",
+    "--num_layers",
+    "4"
+  ],
+  "program":  "E:\\LLM\\CS336\\assignment1-basics\\cs336_basics\\trainer.py",
+  "codePath":  "cs336_basics\\trainer.py",
+  "codePathLocal":  "trainer.py",
+  "git":  {
+    "remote":  "git@github.com:FlyingFish760/CS336-assignment1-basics.git",
+    "commit":  "e60600a64d0137f40f14168498bdc1d20a74e5c7"
+  },
+  "email":  "760384579@qq.com",
+  "root":  "E:\\LLM\\CS336\\assignment1-basics\\cs336_basics",
+  "host":  "LAPTOP-KNVFV7GR",
+  "executable":  "E:\\LLM\\CS336\\assignment1-basics\\.venv\\Scripts\\python.exe",
+  "cpu_count":  4,
+  "cpu_count_logical":  8,
+  "gpu":  "NVIDIA GeForce MX450",
+  "gpu_count":  1,
+  "disk":  {
+    "/":  {
+      "total":  "57670627328",
+      "used":  "49098366976"
+    }
+  },
+  "memory":  {
+    "total":  "16969424896"
+  },
+  "gpu_nvidia":  [
+    {
+      "name":  "NVIDIA GeForce MX450",
+      "memoryTotal":  "2147483648",
+      "cudaCores":  896,
+      "architecture":  "Turing",
+      "uuid":  "GPU-9fa8c5ee-f6e2-5dc5-e0c0-7b91b322f017"
+    }
+  ],
+  "cudaVersion":  "12.8",
+  "writerId":  "1pp7a2z4xoo2k3vblrb5pyhr2d8lgo1o"
+}

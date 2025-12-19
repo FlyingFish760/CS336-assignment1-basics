@@ -7,6 +7,9 @@ from torch import Tensor, LongTensor
 from jaxtyping import Bool, Float, Int
 from einops import rearrange, reduce, repeat
 
+# Local imports
+from cs336_basics.nn_utils import softmax
+
 class Linear(nn.Module):
     def __init__(self, in_features:int, out_features:int, device:torch.device=None, dtype:torch.dtype=None):
         '''
@@ -47,11 +50,13 @@ class Embedding(nn.Module):
         
         self.embed_mat = nn.Parameter(embed_mat)   
 
-    def forward(self, x: Int[LongTensor, "b seq_len"]) -> Float[Tensor, "b seq_len embedding_dim"]:
-        b = x.shape[0]
-        x_flatten = rearrange(x, "b seq_len -> (b seq_len)")
-        x_embedded = rearrange(torch.index_select(self.embed_mat, dim=0, index=x_flatten),
-                               "(b seq_len) embedding_dim -> b seq_len embedding_dim", b=b)
+    def forward(self, x: Int[LongTensor, "... seq_len"]) -> Float[Tensor, "... seq_len embedding_dim"]:
+        # b = x.shape[0]
+        # x_flatten = rearrange(x, "... seq_len -> (... seq_len)")
+        # x_embedded = rearrange(torch.index_select(self.embed_mat, dim=0, index=x_flatten),
+        #                        "(b seq_len) embedding_dim -> b seq_len embedding_dim", b=b)
+
+        x_embedded = self.embed_mat[x]   # (num_embeddings embedding_dim) -> (... seq_len embedding_dim)
         return x_embedded   
 
 class RMSNorm(nn.Module):
@@ -131,11 +136,6 @@ class RoPE(nn.Module):
 
         x_rotated = cos * x + sin * x_transformed
         return x_rotated
-
-def softmax(x: torch.tensor, dim: int):
-    x_exp = torch.exp(x - torch.max(x, dim=dim, keepdim=True).values)  # substract max value of the dim dimension to ensure numeric stability
-    x_exp_sum = torch.sum(x_exp, dim=dim, keepdim=True)
-    return x_exp / x_exp_sum
 
 def attention(Q: Float[Tensor, "b ... q_len d_k"], 
               K: Float[Tensor, "b ... k/v_len d_k"],
@@ -296,14 +296,19 @@ class TransformerLM(nn.Module):
         h = self.token_embedding(x)   # (... seq_len d_model)
         for layer in self.transformer_blocks:
             h = layer(h)
-        output = self.out_proj(self.out_norm(h))
-        return output
+        logits = self.out_proj(self.out_norm(h))
+        return logits
 
 
 if __name__ == "__main__":
-    b, seq_len, d_model = 4, 16, 512
+    b, seq_len, d_model, vocab_size = 4, 16, 512, 5120
 
-    # x = torch.randn((b, seq_len, d_model))
+    # token_ids = torch.randint(0, vocab_size, (b, seq_len))
+    # embed = Embedding(vocab_size, d_model)
+    # token_embedding = embed(token_ids)
+    # print(token_embedding.shape)
+
+    x = torch.randn((b, seq_len, d_model))
 
     # ffn = FFN(512, 64)
     # x_ffn = ffn(x)
@@ -320,12 +325,13 @@ if __name__ == "__main__":
     # attn = attention(Q, K, V, mask)
     # print(attn.shape)
 
-    # mha = MultiheadAttention(
-    #     d_model,
-    #     num_heads=4, 
-    #     max_seq_len=128,
-    #     theta=10000,
-    # )
+    mha = MultiheadAttention(
+        d_model,
+        num_heads=4, 
+        max_seq_len=128,
+        theta=10000,
+    )
+    print(mha.parameters())
     # res = mha(x)
     # print(res.shape)
 
@@ -338,20 +344,20 @@ if __name__ == "__main__":
     # res = trans(x)
     # print(res.shape)
 
-    vocab_size = 512
-    token_ids = torch.randint(low=0, high=vocab_size, size=(b, seq_len))
-    lm = TransformerLM(
-        vocab_size,
-        d_model,
-        num_heads=4,
-        d_ff= 4*d_model,
-        context_length=128,
-        theta=10000,
-        num_layers=2
-    )
+    # vocab_size = 512
+    # token_ids = torch.randint(low=0, high=vocab_size, size=(seq_len,))
+    # lm = TransformerLM(
+    #     vocab_size,
+    #     d_model,
+    #     num_heads=4,
+    #     d_ff= 4*d_model,
+    #     context_length=128,
+    #     theta=10000,
+    #     num_layers=2
+    # )
     # output = lm(token_ids)
     # print(output.shape)
     # print(output)
-    print(lm.state_dict)
+    # print(lm.state_dict)
 
 
