@@ -1,0 +1,33 @@
+(assignment1-basics) PS E:\LLM\CS336\assignment1-basics\cs336_basics> python trainer.py --d_model 512 --num_heads 16 --d_ff 1344 --context_length 256 --num_layers 4 --device "cpu" --batch_size 4 --train_data_path ../data/test_data.npy --val_data_path ../data/test_data.npy --eval_steps 9 --save_steps 5 --log_steps 1 --max_lr 1e-3
+E:\LLM\CS336\assignment1-basics\cs336_basics\data.py:50: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\pytorch\torch\csrc\utils\tensor_numpy.cpp:209.)
+  inputs = torch.from_numpy(chunk[:-1]).to(self.device)
+(Step: 1/9), train_loss: 10.8285, lr: 0.000966, spent time: 0.0min
+(Step: 2/9), train_loss: 10.5376, lr: 0.000868, spent time: 0.0min
+(Step: 3/9), train_loss: 9.9852, lr: 0.000722, spent time: 0.0min
+(Step: 4/9), train_loss: 9.4730, lr: 0.000550, spent time: 0.0min
+(Step: 5/9), train_loss: 9.2086, lr: 0.000378, spent time: 0.0min
+(Step: 6/9), train_loss: 8.8827, lr: 0.000232, spent time: 0.0min
+(Step: 7/9), train_loss: 8.7397, lr: 0.000134, spent time: 0.0min
+(Step: 8/9), train_loss: 8.6938, lr: 0.000100, spent time: 0.0min
+(Step: 9/9), train_loss: 8.6846, lr: 0.000100, spent time: 0.0min
+(Step: 9/9), val_loss: 9.4890
+(Step: 1/9), train_loss: 8.5187, lr: 0.000966, spent time: 0.0min
+(Step: 2/9), train_loss: 7.8409, lr: 0.000868, spent time: 0.0min
+(Step: 3/9), train_loss: 7.2144, lr: 0.000722, spent time: 0.0min
+(Step: 4/9), train_loss: 6.8417, lr: 0.000550, spent time: 0.0min
+(Step: 5/9), train_loss: 6.4825, lr: 0.000378, spent time: 0.0min
+(Step: 6/9), train_loss: 6.3646, lr: 0.000232, spent time: 0.0min
+(Step: 7/9), train_loss: 6.2298, lr: 0.000134, spent time: 0.0min
+(Step: 8/9), train_loss: 6.3384, lr: 0.000100, spent time: 0.0min
+(Step: 9/9), train_loss: 6.3030, lr: 0.000100, spent time: 0.0min
+(Step: 9/9), val_loss: 6.9311
+(Step: 1/9), train_loss: 6.2406, lr: 0.000966, spent time: 0.0min
+(Step: 2/9), train_loss: 5.7772, lr: 0.000868, spent time: 0.0min
+(Step: 3/9), train_loss: 5.8809, lr: 0.000722, spent time: 0.0min
+(Step: 4/9), train_loss: 5.6945, lr: 0.000550, spent time: 0.0min
+(Step: 5/9), train_loss: 5.6385, lr: 0.000378, spent time: 0.0min
+(Step: 6/9), train_loss: 5.5656, lr: 0.000232, spent time: 0.0min
+(Step: 7/9), train_loss: 5.4823, lr: 0.000134, spent time: 1.0min
+(Step: 8/9), train_loss: 5.5134, lr: 0.000100, spent time: 1.0min
+(Step: 9/9), train_loss: 5.6712, lr: 0.000100, spent time: 1.0min
+(Step: 9/9), val_loss: 6.2044
