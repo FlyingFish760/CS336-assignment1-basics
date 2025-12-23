@@ -189,6 +189,7 @@ class MultiheadAttention(nn.Module):
         mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1)==0
 
         # Compute attention
+        # (use W_qkv)
         # qkv = self.W_qkv(x)   # (... seq_len, d_model*3)
         # Q, K, V = rearrange(qkv, "... seq_len (qkv d_model) -> qkv ... seq_len d_model", qkv=3)   # (... seq_len d_model)
         Q = self.W_q(x)
@@ -209,6 +210,7 @@ class MultiheadAttention(nn.Module):
 
         # Only apply RoPE to Q/K
         if token_positions is not None: 
+            token_positions = repeat(token_positions, "... seq_len -> ... h seq_len", h=self.num_heads)
             Q = self.rope(Q, token_positions)   
             K = self.rope(K, token_positions)
         # Compute Multihead-attention

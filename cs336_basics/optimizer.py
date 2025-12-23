@@ -72,11 +72,13 @@ class AdamW(torch.optim.Optimizer):
                 m = state.get("m", torch.zeros_like(p))
                 v = state.get("v", torch.zeros_like(p))
 
-                # Update parameters
+                # Compute variables
                 grad = p.grad.data
                 m = beta1 * m + (1 - beta1) * grad
                 v = beta2 * v + (1 - beta2) * grad ** 2
                 grad_des_rate = lr * (math.sqrt(1 - beta2 ** t) / (1 - beta1 ** t))
+
+                # Update parameters
                 p.data -= grad_des_rate * (m / (torch.sqrt(v) + eps))
                 p.data -= lr * weight_decay * p.data
 

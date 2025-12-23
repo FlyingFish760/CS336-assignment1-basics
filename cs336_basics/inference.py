@@ -91,15 +91,36 @@ if __name__ == "__main__":
     # prob_dist_p = apply_top_p(prob_dist, thres_p=0.5)
     # print(prob_dist_p.shape)
 
+    # model = TransformerLM(
+    #     vocab_size,
+    #     d_model=16,
+    #     num_heads=2, 
+    #     d_ff=64,
+    #     context_length=64,
+    #     theta=10000,
+    #     num_layers=4
+    # )
+    # tokenizer = AutoTokenizer.from_pretrained("gpt2")
+    # generate(prompt="Hello world,",
+    #          tokenizer = tokenizer,
+    #          model=model,
+    #          max_generate_tokens=16,
+    #          temperature=0.5,
+    #          thres_p=0.8
+    #          )
+    
     model = TransformerLM(
-        vocab_size,
-        d_model=16,
-        num_heads=2, 
-        d_ff=64,
-        context_length=64,
+        vocab_size=50257,
+        d_model=512,
+        num_heads=16, 
+        d_ff=1344,
+        context_length=256,
         theta=10000,
         num_layers=4
     )
+    state_dict = torch.load(r"..\out\5.pt")
+    model_state = state_dict["model_state_dict"]
+    model.load_state_dict(model_state)
     tokenizer = AutoTokenizer.from_pretrained("gpt2")
     generate(prompt="Hello world,",
              tokenizer = tokenizer,
