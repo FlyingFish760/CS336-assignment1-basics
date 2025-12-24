@@ -61,6 +61,8 @@ def evaluate():
     total_loss = 0
     with torch.no_grad():
         for step, (inputs, targets) in enumerate(val_dataloader.load_data()):
+            inputs = inputs.to(args.device)
+            targets = targets.to(args.device)
             logits = model(inputs)
             loss = cross_entropy(logits, targets)
             total_loss += loss
@@ -148,12 +150,14 @@ if __name__ == "__main__":
         )
     
     #--------------Training loop---------------
-    model.to(args.device)
+    model = model.to(args.device)
+    print(next(model.parameters()).device)
     start_time = time.time()
     for step, (inputs, targets) in enumerate(train_dataloader.load_data(), 
                                             start=start_step):
-        inputs.to(args.device)
-        targets.to(args.device)
+        inoputs = inputs.to(args.device)
+        targets = targets.to(args.device)
+        print(inputs.device)
         train_loss = train_step(inputs, targets, step)
 
         # Save checkpoints
