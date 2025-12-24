@@ -99,6 +99,9 @@ if __name__ == "__main__":
     parser.add_argument("--log_steps", type=int, default=100, help="Number of steps to log training performance")
     parser.add_argument("--eval_steps", type=int, default=100, help="Number of steps to evaluate validation loss")
     parser.add_argument("--use_wandb", type=bool, default=False, help="Whether to use wandb to log")
+    parser.add_argument("--wandb_team", type=str, default="cs336_assign1", help="Wandb team name")
+    parser.add_argument("--wandb_project", type=str, default="model_pretrain", help="Wandb project name")
+    parser.add_argument("--wandb_run", type=str, default="test_run", help="Wandb run name")
 
     args = parser.parse_args()
 
@@ -141,8 +144,9 @@ if __name__ == "__main__":
     #--------------Init wandb---------------
     if args.use_wandb:
         wandb_run = wandb.init(
-            entity="cs336_assign1",
-            project="cs336_assignment1",
+            entity=args.wandb_team,
+            project=args.wandb_project,
+            name=args.wandb_run,
             config={
                 "max_learning_rate": args.max_lr,
                 "steps": train_steps,
