@@ -129,13 +129,11 @@ if __name__ == "__main__":
     train_dataloader = CustomDataloader(args.train_data_path, 
                                         batch_size=args.batch_size,
                                         context_length=args.context_length,
-                                        shuffle=True,
-                                        device=args.device)
+                                        shuffle=True)
     val_dataloader = CustomDataloader(args.val_data_path, 
                                       batch_size=args.batch_size,
                                       context_length=args.context_length,
-                                      shuffle=False,
-                                      device=args.device)
+                                      shuffle=False)
     train_steps = len(train_dataloader)
 
     #--------------Init wandb---------------
@@ -150,44 +148,45 @@ if __name__ == "__main__":
         )
     
     #--------------Training loop---------------
+    model.to(args.device)
     start_time = time.time()
-    num_epochs = 1
-    for epoch in range(num_epochs):
-        for step, (inputs, targets) in enumerate(train_dataloader.load_data(), 
-                                                start=start_step):
-            train_loss = train_step(inputs, targets, step)
+    for step, (inputs, targets) in enumerate(train_dataloader.load_data(), 
+                                            start=start_step):
+        inputs.to(args.device)
+        targets.to(args.device)
+        train_loss = train_step(inputs, targets, step)
 
-            # Save checkpoints
-            os.makedirs(args.save_dir, exist_ok=True)
-            save_path = f"{args.save_dir}/{step + 1}.pt"
-            if (step + 1) % args.save_steps == 0:
-                save_checkpoint(model, optimizer, step + 1, save_path)
+        # Save checkpoints
+        os.makedirs(args.save_dir, exist_ok=True)
+        save_path = f"{args.save_dir}/{step + 1}.pt"
+        if (step + 1) % args.save_steps == 0:
+            save_checkpoint(model, optimizer, step + 1, save_path)
 
-            # Log training performance
-            if (step + 1) % args.log_steps == 0:
-                lr = optimizer.param_groups[0]["lr"]
-                cur_time = time.time()
-                spent_time = (cur_time - start_time) // 60
-                log_info = f"(Step: {step + 1}/{train_steps}), train_loss: {train_loss:.4f}, lr: {lr:.6f}, spent time: {spent_time}min"
-                logger(log_info)
-                if args.use_wandb:
-                    wandb_log = {
-                        "train loss": train_loss,
-                        "lr": lr,
-                        "spent time (min)": spent_time
-                    }
-                    wandb_run.log(wandb_log)
+        # Log training performance
+        if (step + 1) % args.log_steps == 0:
+            lr = optimizer.param_groups[0]["lr"]
+            cur_time = time.time()
+            spent_time = (cur_time - start_time) // 60
+            log_info = f"(Step: {step + 1}/{train_steps}), train_loss: {train_loss:.4f}, lr: {lr:.6f}, spent time: {spent_time}min"
+            logger(log_info)
+            if args.use_wandb:
+                wandb_log = {
+                    "train loss": train_loss,
+                    "lr": lr,
+                    "spent time (min)": spent_time
+                }
+                wandb_run.log(wandb_log)
 
-            # Evaluate validation loss
-            if (step + 1) % args.eval_steps == 0:
-                val_loss = evaluate()
-                log_info = f"(Step: {step + 1}/{train_steps}), val_loss: {val_loss:.4f}"
-                logger(log_info)
-                if args.use_wandb:
-                    wandb_log = {
-                        "val loss": val_loss
-                    }
-                    wandb_run.log(wandb_log)
+        # Evaluate validation loss
+        if (step + 1) % args.eval_steps == 0:
+            val_loss = evaluate()
+            log_info = f"(Step: {step + 1}/{train_steps}), val_loss: {val_loss:.4f}"
+            logger(log_info)
+            if args.use_wandb:
+                wandb_log = {
+                    "val loss": val_loss
+                }
+                wandb_run.log(wandb_log)
 
     if args.use_wandb:
         wandb_run.finish()

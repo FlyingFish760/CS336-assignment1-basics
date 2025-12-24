@@ -186,7 +186,7 @@ class MultiheadAttention(nn.Module):
                 token_positions: Int[Tensor, " ... sequence_length"] | None = None) -> Float[Tensor, "... seq_len d_model"]:
         # Construct casual mask
         seq_len = x.shape[-2]
-        mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1)==0
+        mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1, device=x.device)==0
 
         # Compute attention
         # (use W_qkv)

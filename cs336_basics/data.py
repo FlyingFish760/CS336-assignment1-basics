@@ -34,21 +34,19 @@ class CustomDataloader:
                  data_path: str,
                  batch_size: int, 
                  context_length: int, 
-                 shuffle: bool = False,
-                 device: str = "cpu"):
+                 shuffle: bool = False):
         self.tokenized_ids = np.load(data_path, mmap_mode="r")
         self.batch_size = batch_size
         self.context_length = context_length
         self.shuffle = shuffle
-        self.device = device
 
     def __len__(self):
         return len(self.tokenized_ids) // self.context_length // self.batch_size
         
     def get_chunk(self, start_ind):
         chunk = self.tokenized_ids[start_ind: start_ind + self.context_length + 1]
-        inputs = torch.from_numpy(chunk[:-1]).to(self.device)
-        targets = torch.from_numpy(chunk[1:]).to(self.device)
+        inputs = torch.from_numpy(chunk[:-1])
+        targets = torch.from_numpy(chunk[1:])
         return (inputs, targets)
 
     def load_data(self):
@@ -61,8 +59,8 @@ class CustomDataloader:
         if self.shuffle:
             np.random.shuffle(sample_offsets)
         for batch_start in range(0, len(sample_offsets) - self.batch_size + 1, self.batch_size):
-            inputs_batch = torch.empty((self.batch_size, self.context_length), device=self.device, dtype=torch.int64)
-            targets_batch = torch.empty((self.batch_size, self.context_length), device=self.device, dtype=torch.int64)
+            inputs_batch = torch.empty((self.batch_size, self.context_length), dtype=torch.int64)
+            targets_batch = torch.empty((self.batch_size, self.context_length), dtype=torch.int64)
             for i in range(self.batch_size):
                 start_ind = sample_offsets[batch_start + i]
                 inputs, targets = self.get_chunk(start_ind)
