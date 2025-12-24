@@ -93,11 +93,11 @@ if __name__ == "__main__":
     parser.add_argument("--val_data_path", type=str, default="../data/TinyStoriesV2-GPT4-valid.npy", help="Path of the validation dataset")
     # parser.add_argument("--num_epochs", type=int, default=1, help="Number of training epochs")
     # parser.add_argument("--num_steps", type=int, help="Number of training steps")
-    parser.add_argument("--save_steps", type=int, help="Number of steps to save checkpoints")
+    # parser.add_argument("--save_steps", type=int, help="Number of steps to save checkpoints")
     parser.add_argument("--save_dir", type=str, default="../out", help="Directory to save checkpoints")
     parser.add_argument("--load_path", type=str, default=None, help="Path to load checkpoints")
-    parser.add_argument("--log_steps", type=int, default=100, help="Number of steps to log training performance")
-    parser.add_argument("--eval_steps", type=int, default=100, help="Number of steps to evaluate validation loss")
+    # parser.add_argument("--log_steps", type=int, default=100, help="Number of steps to log training performance")
+    # parser.add_argument("--eval_steps", type=int, default=100, help="Number of steps to evaluate validation loss")
     parser.add_argument("--use_wandb", type=bool, default=False, help="Whether to use wandb to log")
     parser.add_argument("--wandb_team", type=str, default="cs336_assign1", help="Wandb team name")
     parser.add_argument("--wandb_project", type=str, default="model_pretrain", help="Wandb project name")
@@ -140,6 +140,9 @@ if __name__ == "__main__":
                                       context_length=args.context_length,
                                       shuffle=False)
     train_steps = len(train_dataloader)
+    log_steps = train_steps // 100
+    save_steps = train_steps // 1
+    eval_steps = train_steps // 10
 
     #--------------Init wandb---------------
     if args.use_wandb:
@@ -150,28 +153,29 @@ if __name__ == "__main__":
             config={
                 "max_learning_rate": args.max_lr,
                 "steps": train_steps,
+                "log_steps": log_steps,
+                "save_steps": save_steps,
+                "eval_steps": eval_steps
             }
         )
     
     #--------------Training loop---------------
     model = model.to(args.device)
-    print(next(model.parameters()).device)
     start_time = time.time()
     for step, (inputs, targets) in enumerate(train_dataloader.load_data(), 
                                             start=start_step):
         inoputs = inputs.to(args.device)
         targets = targets.to(args.device)
-        print(inputs.device)
         train_loss = train_step(inputs, targets, step)
 
         # Save checkpoints
         os.makedirs(args.save_dir, exist_ok=True)
         save_path = f"{args.save_dir}/{step + 1}.pt"
-        if (step + 1) % args.save_steps == 0:
+        if (step + 1) % save_steps == 0:
             save_checkpoint(model, optimizer, step + 1, save_path)
 
         # Log training performance
-        if (step + 1) % args.log_steps == 0:
+        if (step + 1) % log_steps == 0:
             lr = optimizer.param_groups[0]["lr"]
             cur_time = time.time()
             spent_time = (cur_time - start_time) // 60
@@ -186,7 +190,7 @@ if __name__ == "__main__":
                 wandb_run.log(wandb_log)
 
         # Evaluate validation loss
-        if (step + 1) % args.eval_steps == 0:
+        if (step + 1) % eval_steps == 0:
             val_loss = evaluate()
             log_info = f"(Step: {step + 1}/{train_steps}), val_loss: {val_loss:.4f}"
             logger(log_info)

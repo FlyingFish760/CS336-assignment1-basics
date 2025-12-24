@@ -27,6 +27,7 @@ def estimate_time(model_config: dict, total_tokens: int, gpu_memory_size: int, g
         model_config,
         gpu_memory_size
     )
+    print(f"Estimated max batch size is {max_batch_size}.")
 
     steps = total_tokens // model_config["context_length"] // max_batch_size
 

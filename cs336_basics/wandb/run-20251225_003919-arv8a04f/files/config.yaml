@@ -1,0 +1,94 @@
+_wandb:
+    value:
+        cli_version: 0.21.2
+        e:
+            1qkp6wttybr22ve2uw58ldjsjwi1ktrt:
+                args:
+                    - --d_model
+                    - "512"
+                    - --num_heads
+                    - "16"
+                    - --d_ff
+                    - "1344"
+                    - --context_length
+                    - "256"
+                    - --num_layers
+                    - "4"
+                    - --device
+                    - cuda:0
+                    - --batch_size
+                    - "4"
+                    - --train_data_path
+                    - ../data/test_data.npy
+                    - --val_data_path
+                    - ../data/test_data.npy
+                    - --max_lr
+                    - "1e-3"
+                    - --use_wandb
+                    - "True"
+                    - --wandb_project
+                    - test_step
+                    - --wandb_run
+                    - test_run
+                codePath: cs336_basics\trainer.py
+                codePathLocal: trainer.py
+                cpu_count: 4
+                cpu_count_logical: 8
+                cudaVersion: "12.8"
+                disk:
+                    /:
+                        total: "57670627328"
+                        used: "51186827264"
+                email: 760384579@qq.com
+                executable: E:\LLM\CS336\assignment1-basics\.venv\Scripts\python.exe
+                git:
+                    commit: c2a1c092630aa23b181533848076600ae1aa17d8
+                    remote: git@github.com:FlyingFish760/CS336-assignment1-basics.git
+                gpu: NVIDIA GeForce MX450
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Turing
+                      cudaCores: 896
+                      memoryTotal: "2147483648"
+                      name: NVIDIA GeForce MX450
+                      uuid: GPU-9fa8c5ee-f6e2-5dc5-e0c0-7b91b322f017
+                host: LAPTOP-KNVFV7GR
+                memory:
+                    total: "16969424896"
+                os: Windows-10-10.0.19045-SP0
+                program: E:\LLM\CS336\assignment1-basics\cs336_basics\trainer.py
+                python: CPython 3.12.9
+                root: E:\LLM\CS336\assignment1-basics\cs336_basics
+                startedAt: "2025-12-24T16:39:19.595303Z"
+                writerId: 1qkp6wttybr22ve2uw58ldjsjwi1ktrt
+        m: []
+        python_version: 3.12.9
+        t:
+            "1":
+                - 1
+                - 11
+                - 49
+            "2":
+                - 1
+                - 11
+                - 49
+            "3":
+                - 13
+                - 16
+            "4": 3.12.9
+            "5": 0.21.2
+            "6": 4.57.3
+            "8":
+                - 3
+            "12": 0.21.2
+            "13": windows-amd64
+eval_steps:
+    value: 0
+log_steps:
+    value: 0
+max_learning_rate:
+    value: 0.001
+save_steps:
+    value: 9
+steps:
+    value: 9
