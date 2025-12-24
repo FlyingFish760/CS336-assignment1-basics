@@ -32,7 +32,7 @@ def get_model_size(model: nn.Module):
     print(f"Number of buffers: {total_buffers:,}.")
     print(f"Size of buffers: {total_buffers_gb:.2f} GB.")
 
-def calculate_model_peak_memory(model_config: dict, optimizer_cat: str, batch_size: int, dtype: torch.dtype):
+def calculate_model_peak_memory(model_config: dict, optimizer_cat: str, batch_size: int, dtype: torch.dtype, ):
     '''
     Decompose the question based on parameters, activations, gradients, optimizer state
     '''
@@ -279,4 +279,5 @@ def estimate_train_days(model_config: dict,
     hardware_flops = hardware_flops_tera * 1e12 * mfu
     train_days = total_flops_step * train_steps / hardware_flops / (60 * 60 * 24)
 
-    print(f"Estimated training days is {train_days} days.")
+    # print(f"Estimated training days is {train_days} days.")
+    return train_days
