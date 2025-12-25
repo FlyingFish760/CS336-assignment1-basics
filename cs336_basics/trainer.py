@@ -160,10 +160,9 @@ if __name__ == "__main__":
             name=args.wandb_run,
             config={
                 "max_learning_rate": args.max_lr,
-                "steps": train_steps,
-                "log_steps": log_steps,
-                "save_steps": save_steps,
-                "eval_steps": eval_steps
+                "lr schedule strategy": "warmup + cos + end",
+                "model config": "test model",
+                "dataset": "TinyStoriesV2-GPT4"
             }
         )
     
@@ -186,15 +185,9 @@ if __name__ == "__main__":
             spent_time = (cur_time - start_time) // 60
             log_info = f"(Step: {step + 1}/{train_steps}), saved checkpoint to {save_path}, spent time: {spent_time}min"
             logger(log_info)
-            if args.use_wandb:
-                wandb_log = {
-                    "checkpoint": save_path,
-                    "spent time (min)": spent_time
-                }
-                wandb_run.log(wandb_log)
 
         # Log training performance
-        if (step + 1) % log_steps == 0:
+        if (step + 1) % log_steps == 0 or (step + 1) == train_steps:
             lr = optimizer.param_groups[0]["lr"]
             cur_time = time.time()
             spent_time = (cur_time - start_time) // 60
@@ -209,7 +202,7 @@ if __name__ == "__main__":
                 wandb_run.log(wandb_log)
 
         # Evaluate validation loss
-        if (step + 1) % eval_steps == 0:
+        if (step + 1) % eval_steps == 0 or (step + 1) == train_steps:
             val_loss = evaluate()
             cur_time = time.time()
             spent_time = (cur_time - start_time) // 60
@@ -218,7 +211,7 @@ if __name__ == "__main__":
             if args.use_wandb:
                 wandb_log = {
                     "val loss": val_loss,
-                    "spent time": spent_time
+                    "spent time (min)": spent_time
                 }
                 wandb_run.log(wandb_log)
 
