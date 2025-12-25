@@ -2,6 +2,8 @@ from cs336_basics.assignment_utils import estimate_train_days
 from cs336_basics.assignment_utils import calculate_max_batch
 
 TOKENIZER_VOCAB_SIZE = 50257
+train_tokens = 531635766
+val_tokens = 5369522
 
 test_model_config = {
     "num_layers": 4,
@@ -30,6 +32,7 @@ def estimate_time(model_config: dict, total_tokens: int, gpu_memory_size: int, g
     print(f"Estimated max batch size is {max_batch_size}.")
 
     steps = total_tokens // model_config["context_length"] // max_batch_size
+    print(f"Estimated steps is {steps}.")
 
     days = estimate_train_days(
         model_config,
@@ -43,9 +46,11 @@ def estimate_time(model_config: dict, total_tokens: int, gpu_memory_size: int, g
     print(f"Estimated training time is {hours} hours.")
     print(f"Estimated training time is {minutes} mins.")
 
+
+
 if __name__ == "__main__":
     estimate_time(test_model_config,
-                  total_tokens=531635766,
+                  total_tokens=val_tokens,
                   gpu_memory_size=24,
                   gpu_flops=73.54,
                   mfu=0.5)

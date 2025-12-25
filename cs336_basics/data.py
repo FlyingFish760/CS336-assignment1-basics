@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from torch import Tensor
+from torch.utils.data import Dataset, DataLoader
 from transformers import PreTrainedTokenizer, AutoTokenizer
 
 def tokenize_file(file_path: str, out_path: str, tokenizer:PreTrainedTokenizer):
@@ -8,7 +9,8 @@ def tokenize_file(file_path: str, out_path: str, tokenizer:PreTrainedTokenizer):
     with open(file_path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
-            encoding = tokenizer(line).input_ids
+            encoding = tokenizer(line,
+                                 max).input_ids
             token_ids.extend(encoding)
     token_ids = np.array(token_ids)
     np.save(out_path, token_ids)
@@ -68,18 +70,53 @@ class CustomDataloader:
                 targets_batch[i] = targets
             yield inputs_batch, targets_batch
 
+class PretrainDataset(Dataset):
+    def __init__(self, 
+                 data_path: str,
+                 context_length: int,
+                 dtype: torch.dtype = torch.int64):
+        '''
+        data_path: str. Path to a one sequnence token ids file, should be in np.adarray format.
+        '''
+        super().__init__()
+        self.token_ids = np.load(data_path, mmap_mode="r")
+        self.context_length = context_length
+        self.dtype = dtype
+
+    def __len__(self):
+        return len(self.token_ids) // (self.context_length + 1)
+    
+    def __getitem__(self, index):
+        chunk = self.token_ids[index * (self.context_length + 1): (index + 1) * (self.context_length + 1)]
+        inputs = torch.from_numpy(chunk[:-1]).to(self.dtype)
+        targets = torch.from_numpy(chunk[1:]).to(self.dtype)
+        return inputs, targets
         
 
 
 
 if __name__ == "__main__":
-    # x = np.random.randint(low=0, high=100, size=(50))
-    # input, target = get_batch(x, batch_size=4, context_length=10)
-    # print(input.dtype)
-    # print(target)
+    x = np.random.randint(low=0, high=100, size=(50))
+    input, target = get_batch(x, batch_size=4, context_length=10)
+    print(input.dtype)
+    print(target)
 
-    data_path = r"E:\LLM\CS336\assignment1-basics\data\TinyStoriesV2-GPT4-train.txt"
-    tokenizer = AutoTokenizer.from_pretrained("gpt2")
-    tokenize_file(data_path,
-                  out_path="../data/TinyStoriesV2-GPT4-train.npy", 
-                  tokenizer=tokenizer)
+    # data_path = r"E:\LLM\CS336\assignment1-basics\data\TinyStoriesV2-GPT4-train.txt"
+    # tokenizer = AutoTokenizer.from_pretrained("gpt2")
+    # tokenize_file(data_path,
+    #               out_path="../data/TinyStoriesV2-GPT4-train.npy", 
+    #               tokenizer=tokenizer)
+
+    # data_path = r"data\test_data_100.npy"
+    # ds = PretrainDataset(data_path, context_length=6)
+    # # print(len(ds))
+    # # print(ds.__getitem__(0))
+
+    # dl = DataLoader(
+    #     ds,
+    #     batch_size=3,
+    #     shuffle=False,
+    #     num_workers=0
+    # )
+    # for inputs, targets in dl:
+    #     print(inputs)

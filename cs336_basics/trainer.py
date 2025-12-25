@@ -5,13 +5,14 @@ import os
 import numpy as np
 import torch
 from torch import Tensor
+from torch.utils.data import DataLoader
 from jaxtyping import Int, Float
 import wandb
 
 from cs336_basics.model import TransformerLM
 from cs336_basics.nn_utils import cross_entropy
 from cs336_basics.optimizer import AdamW
-from cs336_basics.data import get_batch, CustomDataloader
+from cs336_basics.data import get_batch, PretrainDataset
 from cs336_basics.utils import learning_rate_schedule, save_checkpoint, load_checkpoint, logger
 
 TOKENIZER_VOCAB_SIZE = 50257
@@ -60,7 +61,7 @@ def evaluate():
 
     total_loss = 0
     with torch.no_grad():
-        for step, (inputs, targets) in enumerate(val_dataloader.load_data()):
+        for step, (inputs, targets) in enumerate(val_dataloader):
             inputs = inputs.to(args.device)
             targets = targets.to(args.device)
             logits = model(inputs)
@@ -131,17 +132,25 @@ if __name__ == "__main__":
     else:
         start_step = 0
 
-    train_dataloader = CustomDataloader(args.train_data_path, 
-                                        batch_size=args.batch_size,
-                                        context_length=args.context_length,
-                                        shuffle=True)
-    val_dataloader = CustomDataloader(args.val_data_path, 
-                                      batch_size=args.batch_size,
-                                      context_length=args.context_length,
-                                      shuffle=False)
+    train_ds = PretrainDataset(args.train_data_path,
+                               context_length=args.context_length)
+    train_dataloader = DataLoader(train_ds, 
+                                  batch_size=args.batch_size,
+                                  shuffle=True,
+                                  drop_last=True,
+                                  num_workers=0)
+    val_ds = PretrainDataset(args.val_data_path,
+                               context_length=args.context_length)
+    val_dataloader = DataLoader(val_ds, 
+                                  batch_size=args.batch_size,
+                                  shuffle=False,
+                                  drop_last=True)
+    
+    # Define steps
     train_steps = len(train_dataloader)
-    log_steps = train_steps // 100
-    save_steps = train_steps // 1
+    # log_steps = train_steps // 100
+    log_steps = train_steps // train_steps
+    save_steps = train_steps // 5
     eval_steps = train_steps // 10
 
     #--------------Init wandb---------------
@@ -162,8 +171,9 @@ if __name__ == "__main__":
     #--------------Training loop---------------
     model = model.to(args.device)
     start_time = time.time()
-    for step, (inputs, targets) in enumerate(train_dataloader.load_data(), 
+    for step, (inputs, targets) in enumerate(train_dataloader, 
                                             start=start_step):
+        # Train step
         inoputs = inputs.to(args.device)
         targets = targets.to(args.device)
         train_loss = train_step(inputs, targets, step)
