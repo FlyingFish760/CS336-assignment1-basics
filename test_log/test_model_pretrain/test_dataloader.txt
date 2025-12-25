@@ -1,0 +1,9 @@
+root@autodl-container-772f4c9f50-fd01da72:~/autodl-tmp/cs336_basics# uv run python trainer.py --d_model 512 --num_heads 16 --d_ff 1344 --context_length 256 --num_layers 4 --device "cuda:0" --batch_size 16 --train_data_path ../data/TinyStoriesV2-GPT4-train.npy --val_data_path ../data/TinyStoriesV2-GPT4-valid.npy --max_lr 1e-5 --use_wandb True --wandb_project test_model_pretrain --wandb_run test_dataloader_run
+Step: 1/129288), val_loss: 10.8392, spent time: 0.0min
+(Step: 2/129288), val_loss: 10.8392, spent time: 0.0min
+(Step: 3/129288), val_loss: 10.8392, spent time: 1.0min
+(Step: 4/129288), val_loss: 10.8392, spent time: 1.0min
+(Step: 5/129288), val_loss: 10.8392, spent time: 2.0min
+(Step: 6/129288), val_loss: 10.8392, spent time: 2.0min
+(Step: 7/129288), val_loss: 10.8392, spent time: 3.0min
+(Step: 8/129288), val_loss: 10.8391, spent time: 3.0min

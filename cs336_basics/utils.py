@@ -71,3 +71,25 @@ def gradient_clipping_(params: Iterable[nn.Parameter], max_l2_norm: float):
 ################### Logging tools ##############################
 def logger(content):
     print(content)
+
+
+
+if __name__ == "__main__":
+    from model import TransformerLM
+
+    test_model_config = {
+        "num_layers": 4,
+        "num_heads": 16,
+        "d_model": 512,
+        "d_ff": 1344,   
+        "vocab_size": 50257,
+        "context_length": 256
+    }
+    # model = TransformerLM(
+    #     vocab_size=50257,
+    #     d_model=512,
+    #     d_ff=1344,
+    #     num_heads=16,
+    #     num_layers=4,
+    #     context_length=256
+    # )

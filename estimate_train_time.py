@@ -50,7 +50,7 @@ def estimate_time(model_config: dict, total_tokens: int, gpu_memory_size: int, g
 
 if __name__ == "__main__":
     estimate_time(test_model_config,
-                  total_tokens=val_tokens,
+                  total_tokens=train_tokens,
                   gpu_memory_size=24,
                   gpu_flops=73.54,
                   mfu=0.5)

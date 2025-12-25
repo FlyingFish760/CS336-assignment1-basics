@@ -148,8 +148,7 @@ if __name__ == "__main__":
     
     # Define steps
     train_steps = len(train_dataloader)
-    # log_steps = train_steps // 100
-    log_steps = train_steps // train_steps
+    log_steps = train_steps // 100
     save_steps = train_steps // 5
     eval_steps = train_steps // 10
 
@@ -183,6 +182,16 @@ if __name__ == "__main__":
         save_path = f"{args.save_dir}/{step + 1}.pt"
         if (step + 1) % save_steps == 0:
             save_checkpoint(model, optimizer, step + 1, save_path)
+            cur_time = time.time()
+            spent_time = (cur_time - start_time) // 60
+            log_info = f"(Step: {step + 1}/{train_steps}), saved checkpoint to {save_path}, spent time: {spent_time}min"
+            logger(log_info)
+            if args.use_wandb:
+                wandb_log = {
+                    "checkpoint": save_path,
+                    "spent time (min)": spent_time
+                }
+                wandb_run.log(wandb_log)
 
         # Log training performance
         if (step + 1) % log_steps == 0:
@@ -202,11 +211,14 @@ if __name__ == "__main__":
         # Evaluate validation loss
         if (step + 1) % eval_steps == 0:
             val_loss = evaluate()
-            log_info = f"(Step: {step + 1}/{train_steps}), val_loss: {val_loss:.4f}"
+            cur_time = time.time()
+            spent_time = (cur_time - start_time) // 60
+            log_info = f"(Step: {step + 1}/{train_steps}), val_loss: {val_loss:.4f}, spent time: {spent_time}min"
             logger(log_info)
             if args.use_wandb:
                 wandb_log = {
-                    "val loss": val_loss
+                    "val loss": val_loss,
+                    "spent time": spent_time
                 }
                 wandb_run.log(wandb_log)
 
