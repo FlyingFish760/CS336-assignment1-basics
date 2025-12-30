@@ -79,8 +79,9 @@ class AdamW(torch.optim.Optimizer):
                 grad_des_rate = lr * (math.sqrt(1 - beta2 ** t) / (1 - beta1 ** t))
 
                 # Update parameters
-                p.data -= grad_des_rate * (m / (torch.sqrt(v) + eps))
-                p.data -= lr * weight_decay * p.data
+                delta_wd = -lr * weight_decay * p.data
+                deta_gd = -grad_des_rate * (m / (torch.sqrt(v) + eps))
+                p.data.add_(delta_wd + deta_gd)
 
                 # Update states
                 state["m"] = m

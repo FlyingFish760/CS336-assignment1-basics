@@ -100,7 +100,7 @@ if __name__ == "__main__":
     parser.add_argument("--load_path", type=str, default=None, help="Path to load checkpoints")
     # parser.add_argument("--log_steps", type=int, default=100, help="Number of steps to log training performance")
     # parser.add_argument("--eval_steps", type=int, default=100, help="Number of steps to evaluate validation loss")
-    parser.add_argument("--use_wandb", type=bool, default=False, help="Whether to use wandb to log")
+    parser.add_argument("--use_wandb", action="store_true", help="Whether to use wandb to log")
     parser.add_argument("--wandb_team", type=str, default="cs336_assign1", help="Wandb team name")
     parser.add_argument("--wandb_project", type=str, default="model_pretrain", help="Wandb project name")
     parser.add_argument("--wandb_run", type=str, default="test_run", help="Wandb run name")
@@ -169,6 +169,7 @@ if __name__ == "__main__":
     
     #--------------Training loop---------------
     model = model.to(args.device)
+    model.compile(mode="reduce-overhead")
     start_time = time.time()
     for step, (inputs, targets) in enumerate(train_dataloader, 
                                             start=start_step):

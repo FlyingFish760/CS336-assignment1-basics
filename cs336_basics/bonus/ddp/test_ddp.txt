@@ -1,6 +1,4 @@
-root@autodl-container-0rqrcn89lq-e12628cd:~/autodl-tmp/cs336_basics# uv run torchrun --nproc-per-node 4 trainer.py --d_model 512 --num_heads 16 --
-d_ff 1344 --context_length 256 --num_layers 4  --batch_size 64 --train_data_path ../data/TinyStoriesV2-GPT4-train.npy --val_data_path ../data/Tiny
-StoriesV2-GPT4-valid.npy --max_lr 0.000015 --use_wandb True --wandb_project test_model_lr_tuning --wandb_run test_ddp_lr0.000015 --dist_train True
+root@autodl-container-0rqrcn89lq-e12628cd:~/autodl-tmp/cs336_basics# uv run torchrun --nproc-per-node 4 trainer.py --d_model 512 --num_heads 16 --d_ff 1344 --context_length 256 --num_layers 4  --batch_size 64 --train_data_path ../data/TinyStoriesV2-GPT4-train.npy --val_data_path ../data/TinyStoriesV2-GPT4-valid.npy --max_lr 0.000015 --use_wandb True --wandb_project test_model_lr_tuning --wandb_run test_ddp_lr0.000015 --dist_train True
  
 [rank3]:[E1229 17:44:16.906097463 ProcessGroupNCCL.cpp:1899] [PG ID 0 PG GUID 0(default_pg) Rank 3] Process group watchdog thread terminated with exception: CUDA error: an illegal memory access was encountered
 CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
