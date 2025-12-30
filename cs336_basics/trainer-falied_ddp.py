@@ -5,7 +5,9 @@ import os
 import numpy as np
 import torch
 from torch import Tensor
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, DistributedSampler
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
 from jaxtyping import Int, Float
 import wandb
 
@@ -13,7 +15,7 @@ from cs336_basics.model import TransformerLM
 from cs336_basics.nn_utils import cross_entropy
 from cs336_basics.optimizer import AdamW
 from cs336_basics.data import get_batch, PretrainDataset
-from cs336_basics.utils import learning_rate_schedule, save_checkpoint, load_checkpoint, logger
+from cs336_basics.utils import learning_rate_schedule, save_checkpoint, load_checkpoint, logger, setup_seed, is_main_process
 
 TOKENIZER_VOCAB_SIZE = 50257
 
@@ -62,8 +64,8 @@ def evaluate():
     total_loss = 0
     with torch.no_grad():
         for step, (inputs, targets) in enumerate(val_dataloader):
-            inputs = inputs.to(args.device)
-            targets = targets.to(args.device)
+            inputs = inputs.to(device)
+            targets = targets.to(device)
             logits = model(inputs)
             loss = cross_entropy(logits, targets)
             total_loss += loss
@@ -104,10 +106,29 @@ if __name__ == "__main__":
     parser.add_argument("--wandb_team", type=str, default="cs336_assign1", help="Wandb team name")
     parser.add_argument("--wandb_project", type=str, default="model_pretrain", help="Wandb project name")
     parser.add_argument("--wandb_run", type=str, default="test_run", help="Wandb run name")
+    parser.add_argument("--dist_train", action="store_true")
 
     args = parser.parse_args()
 
+    #--------------Init random seed and distributed training---------------
+    if args.dist_train:
+        dist.init_process_group(backend="nccl")
+        local_rank = int(os.environ["LOCAL_RANK"])
+        torch.cuda.set_device(local_rank)
+        rank_device = torch.device(f"cuda:{local_rank}")
+    setup_seed(42 + (dist.get_rank() if dist.is_initialized() else 0))
+
     #--------------Init model, optimizer, dataloader---------------
+    # Load checkpoints if needed
+    if args.load_path is not None:
+        state_dict = torch.load(args.load_path, weights_only=False)
+        model_state_dict = state_dict["model_state_dict"]
+        opt_state_dict = state_dict["opt_state_dict"]
+        start_step = state_dict["iter"]
+    else:
+        start_step = 0
+
+    # Init model
     model = TransformerLM(
         vocab_size=args.vocab_size,
         d_model=args.d_model,
@@ -117,7 +138,18 @@ if __name__ == "__main__":
         theta = args.theta,
         num_layers=args.num_layers
     )
+    if args.load_path is not None: 
+        model.load_state_dict(model_state_dict)
 
+    device = rank_device if dist.is_initialized() else args.device
+    model = model.to(device)
+
+    # Wrap model with DDP
+    if dist.is_initialized():
+        # model._ddp_params_and_buffers_to_ignore = {"cos", "sin"}
+        model = DDP(model, device_ids=[local_rank])
+    
+    # Init optimizer
     start_lr = 0.1 * args.max_lr
     optimizer = AdamW(
         model.parameters(),
@@ -126,35 +158,17 @@ if __name__ == "__main__":
         weight_decay=args.weight_decay,
         eps=1e-8
     )
-
-    # Load checkpoints if needed
-    if args.load_path is not None:
-        start_step = load_checkpoint(args.load_path, model, optimizer)
-    else:
-        start_step = 0
+    if args.load_path is not None: 
+        optimizer.load_state_dict(opt_state_dict)
 
     train_ds = PretrainDataset(args.train_data_path,
                                context_length=args.context_length)
-    train_dataloader = DataLoader(train_ds, 
-                                  batch_size=args.batch_size,
-                                  shuffle=True,
-                                  drop_last=True,
-                                  num_workers=0)
+    train_sampler = DistributedSampler(train_ds) if dist.is_initialized() else None
     val_ds = PretrainDataset(args.val_data_path,
                                context_length=args.context_length)
-    val_dataloader = DataLoader(val_ds, 
-                                  batch_size=args.batch_size,
-                                  shuffle=False,
-                                  drop_last=True)
     
-    # Define steps
-    train_steps = len(train_dataloader)
-    log_steps = train_steps // 100
-    save_steps = train_steps // 5
-    eval_steps = train_steps // 10
-
     #--------------Init wandb---------------
-    if args.use_wandb:
+    if args.use_wandb and is_main_process():
         wandb_run = wandb.init(
             entity=args.wandb_team,
             project=args.wandb_project,
@@ -168,17 +182,36 @@ if __name__ == "__main__":
         )
     
     #--------------Training loop---------------
-    model = model.to(args.device)
+    # Set up dataloaders
+    epoch = 0
+    train_sampler and train_sampler.set_epoch(epoch)
+    train_dataloader = DataLoader(train_ds, 
+                                  batch_size=args.batch_size,
+                                  shuffle=(train_sampler is None),
+                                  drop_last=True,
+                                  num_workers=0,
+                                  sampler=train_sampler)
+    val_dataloader = DataLoader(val_ds, 
+                                  batch_size=args.batch_size,
+                                  shuffle=False,
+                                  drop_last=True)
+    
+    # Define steps
+    train_steps = len(train_dataloader)
+    log_steps = train_steps // 100
+    save_steps = train_steps // 5
+    eval_steps = train_steps // 10
+
     start_time = time.time()
     for step, (inputs, targets) in enumerate(train_dataloader, 
                                             start=start_step):
         # Train step
-        inputs = inputs.to(args.device)
-        targets = targets.to(args.device)
+        inputs = inputs.to(device)
+        targets = targets.to(device)
         train_loss = train_step(inputs, targets, step)
 
         # Log training performance
-        if (step + 1) % log_steps == 0 or (step + 1) == train_steps:
+        if ((step + 1) % log_steps == 0 or (step + 1) == train_steps) and is_main_process():
             lr = optimizer.param_groups[0]["lr"]
             cur_time = time.time()
             spent_time = (cur_time - start_time) // 60
@@ -195,7 +228,7 @@ if __name__ == "__main__":
         # Save checkpoints
         os.makedirs(args.save_dir, exist_ok=True)
         save_path = f"{args.save_dir}/{step + 1}.pt"
-        if (step + 1) % save_steps == 0:  
+        if (step + 1) % save_steps == 0 and is_main_process():  
             save_checkpoint(model, optimizer, step + 1, save_path)
             cur_time = time.time()
             spent_time = (cur_time - start_time) // 60
@@ -204,7 +237,7 @@ if __name__ == "__main__":
 
 
         # Evaluate validation loss
-        if (step + 1) % eval_steps == 0 or (step + 1) == train_steps:
+        if ((step + 1) % eval_steps == 0 or (step + 1) == train_steps) and is_main_process():
             val_loss = evaluate()
             cur_time = time.time()
             spent_time = (cur_time - start_time) // 60
@@ -217,5 +250,8 @@ if __name__ == "__main__":
                 }
                 wandb_run.log(wandb_log)
 
-    if args.use_wandb:
+    if dist.is_initialized():
+        dist.destroy_process_group()
+
+    if args.use_wandb and is_main_process():
         wandb_run.finish()

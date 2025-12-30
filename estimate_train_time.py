@@ -2,6 +2,8 @@ from cs336_basics.assignment_utils import estimate_train_days
 from cs336_basics.assignment_utils import calculate_max_batch
 
 TOKENIZER_VOCAB_SIZE = 50257
+RTX_4090D_FLOPS = 73.54
+RTX_PRO6000_FLOPS = 125
 train_tokens = 531635766
 val_tokens = 5369522
 
@@ -52,7 +54,7 @@ if __name__ == "__main__":
     estimate_time(test_model_config,
                   total_tokens=train_tokens,
                   gpu_memory_size=24,
-                  gpu_flops=73.54,
+                  gpu_flops=RTX_4090D_FLOPS,
                   mfu=0.5)
     
     # estimate_time(test_model_config,

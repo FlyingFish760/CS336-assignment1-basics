@@ -1,0 +1,146 @@
+root@autodl-container-772f4c9f50-fd01da72:~/autodl-tmp/cs336_basics# uv run python trainer.py --d_model 512 --num_heads 16 --d_ff 1344 --context_length 256 --num_layers 4 --device "cuda:0" --batch_size 64 --train_data_path ../data/TinyStoriesV2-GPT4-train.npy --val_data_path ../data/TinyStoriesV2-GPT4-valid.npy --max_lr 0.000015 --use_wandb True --wandb_project test_model_lr_tuning --wandb_run lr0.000015
+wandb: Currently logged in as: 760384579 (cs336_assign1) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Changes to your `wandb` environment variables will be ignored because your `wandb` session has already started. For more information on how to modify your settings with `wandb.init()` arguments, please refer to https://wandb.me/wandb-init.
+wandb: Tracking run with wandb version 0.21.2
+wandb: Run data is saved locally in /root/autodl-tmp/cs336_basics/wandb/run-20251225_160228-du0k1p9c
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run lr0.000015
+wandb: ⭐️ View project at https://wandb.ai/cs336_assign1/test_model_lr_tuning
+wandb: 🚀 View run at https://wandb.ai/cs336_assign1/test_model_lr_tuning/runs/du0k1p9c
+/root/autodl-tmp/cs336_basics/data.py:91: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:203.)
+  inputs = torch.from_numpy(chunk[:-1]).to(self.dtype)
+(Step: 323/32322), train_loss: 10.6373, lr: 0.000001, spent time: 1.0min
+(Step: 646/32322), train_loss: 9.7964, lr: 0.000003, spent time: 2.0min
+(Step: 969/32322), train_loss: 8.7292, lr: 0.000004, spent time: 4.0min
+(Step: 1292/32322), train_loss: 7.5178, lr: 0.000006, spent time: 5.0min
+(Step: 1615/32322), train_loss: 6.4673, lr: 0.000007, spent time: 6.0min
+(Step: 1938/32322), train_loss: 5.6593, lr: 0.000009, spent time: 8.0min
+(Step: 2261/32322), train_loss: 5.0118, lr: 0.000010, spent time: 9.0min
+(Step: 2584/32322), train_loss: 4.4864, lr: 0.000012, spent time: 10.0min
+(Step: 2907/32322), train_loss: 4.1052, lr: 0.000013, spent time: 12.0min
+(Step: 3230/32322), train_loss: 3.7576, lr: 0.000015, spent time: 13.0min
+(Step: 3232/32322), val_loss: 3.7674, spent time: 14.0min
+(Step: 3553/32322), train_loss: 3.6328, lr: 0.000015, spent time: 15.0min
+(Step: 3876/32322), train_loss: 3.4588, lr: 0.000015, spent time: 16.0min
+(Step: 4199/32322), train_loss: 3.3003, lr: 0.000015, spent time: 18.0min
+(Step: 4522/32322), train_loss: 3.2217, lr: 0.000015, spent time: 19.0min
+(Step: 4845/32322), train_loss: 3.1796, lr: 0.000015, spent time: 21.0min
+(Step: 5168/32322), train_loss: 3.1391, lr: 0.000015, spent time: 22.0min
+(Step: 5491/32322), train_loss: 3.0077, lr: 0.000015, spent time: 23.0min
+(Step: 5814/32322), train_loss: 2.9251, lr: 0.000015, spent time: 25.0min
+(Step: 6137/32322), train_loss: 2.9175, lr: 0.000015, spent time: 26.0min
+(Step: 6460/32322), train_loss: 2.9579, lr: 0.000014, spent time: 27.0min
+(Step: 6464/32322), saved checkpoint to ../out/6464.pt, spent time: 27.0min
+(Step: 6464/32322), val_loss: 2.9019, spent time: 28.0min
+(Step: 6783/32322), train_loss: 2.9267, lr: 0.000014, spent time: 29.0min
+(Step: 7106/32322), train_loss: 2.8076, lr: 0.000014, spent time: 31.0min
+(Step: 7429/32322), train_loss: 2.8410, lr: 0.000014, spent time: 32.0min
+(Step: 7752/32322), train_loss: 2.7236, lr: 0.000014, spent time: 33.0min
+(Step: 8075/32322), train_loss: 2.8664, lr: 0.000014, spent time: 35.0min
+(Step: 8398/32322), train_loss: 2.7192, lr: 0.000014, spent time: 36.0min
+(Step: 8721/32322), train_loss: 2.6900, lr: 0.000014, spent time: 37.0min
+(Step: 9044/32322), train_loss: 2.6481, lr: 0.000013, spent time: 39.0min
+(Step: 9367/32322), train_loss: 2.6331, lr: 0.000013, spent time: 40.0min
+(Step: 9690/32322), train_loss: 2.6281, lr: 0.000013, spent time: 42.0min
+(Step: 9696/32322), val_loss: 2.6356, spent time: 42.0min
+(Step: 10013/32322), train_loss: 2.5816, lr: 0.000013, spent time: 43.0min
+(Step: 10336/32322), train_loss: 2.5994, lr: 0.000013, spent time: 45.0min
+(Step: 10659/32322), train_loss: 2.4748, lr: 0.000012, spent time: 46.0min
+(Step: 10982/32322), train_loss: 2.6285, lr: 0.000012, spent time: 48.0min
+(Step: 11305/32322), train_loss: 2.5226, lr: 0.000012, spent time: 49.0min
+(Step: 11628/32322), train_loss: 2.5035, lr: 0.000012, spent time: 50.0min
+(Step: 11951/32322), train_loss: 2.4598, lr: 0.000012, spent time: 52.0min
+(Step: 12274/32322), train_loss: 2.4994, lr: 0.000011, spent time: 53.0min
+(Step: 12597/32322), train_loss: 2.5727, lr: 0.000011, spent time: 54.0min
+(Step: 12920/32322), train_loss: 2.4663, lr: 0.000011, spent time: 56.0min
+(Step: 12928/32322), saved checkpoint to ../out/12928.pt, spent time: 56.0min
+(Step: 12928/32322), val_loss: 2.4901, spent time: 56.0min
+(Step: 13243/32322), train_loss: 2.5510, lr: 0.000011, spent time: 58.0min
+(Step: 13566/32322), train_loss: 2.4824, lr: 0.000010, spent time: 59.0min
+(Step: 13889/32322), train_loss: 2.3859, lr: 0.000010, spent time: 60.0min
+(Step: 14212/32322), train_loss: 2.4890, lr: 0.000010, spent time: 62.0min
+(Step: 14535/32322), train_loss: 2.3964, lr: 0.000010, spent time: 63.0min
+(Step: 14858/32322), train_loss: 2.4170, lr: 0.000009, spent time: 64.0min
+(Step: 15181/32322), train_loss: 2.3516, lr: 0.000009, spent time: 66.0min
+(Step: 15504/32322), train_loss: 2.3688, lr: 0.000009, spent time: 67.0min
+(Step: 15827/32322), train_loss: 2.4364, lr: 0.000009, spent time: 69.0min
+(Step: 16150/32322), train_loss: 2.3898, lr: 0.000008, spent time: 70.0min
+(Step: 16160/32322), val_loss: 2.4024, spent time: 70.0min
+(Step: 16473/32322), train_loss: 2.4278, lr: 0.000008, spent time: 72.0min
+(Step: 16796/32322), train_loss: 2.4359, lr: 0.000008, spent time: 73.0min
+(Step: 17119/32322), train_loss: 2.4199, lr: 0.000007, spent time: 75.0min
+(Step: 17442/32322), train_loss: 2.3499, lr: 0.000007, spent time: 76.0min
+(Step: 17765/32322), train_loss: 2.3178, lr: 0.000007, spent time: 77.0min
+(Step: 18088/32322), train_loss: 2.3364, lr: 0.000007, spent time: 79.0min
+(Step: 18411/32322), train_loss: 2.3084, lr: 0.000006, spent time: 80.0min
+(Step: 18734/32322), train_loss: 2.4007, lr: 0.000006, spent time: 81.0min
+(Step: 19057/32322), train_loss: 2.3357, lr: 0.000006, spent time: 83.0min
+(Step: 19380/32322), train_loss: 2.2850, lr: 0.000006, spent time: 84.0min
+(Step: 19392/32322), saved checkpoint to ../out/19392.pt, spent time: 84.0min
+(Step: 19392/32322), val_loss: 2.3459, spent time: 85.0min
+(Step: 19703/32322), train_loss: 2.3259, lr: 0.000005, spent time: 86.0min
+(Step: 20026/32322), train_loss: 2.3796, lr: 0.000005, spent time: 87.0min
+(Step: 20349/32322), train_loss: 2.3685, lr: 0.000005, spent time: 89.0min
+(Step: 20672/32322), train_loss: 2.2742, lr: 0.000005, spent time: 90.0min
+(Step: 20995/32322), train_loss: 2.2788, lr: 0.000005, spent time: 92.0min
+(Step: 21318/32322), train_loss: 2.3350, lr: 0.000004, spent time: 93.0min
+(Step: 21641/32322), train_loss: 2.3717, lr: 0.000004, spent time: 94.0min
+(Step: 21964/32322), train_loss: 2.2252, lr: 0.000004, spent time: 96.0min
+(Step: 22287/32322), train_loss: 2.3431, lr: 0.000004, spent time: 97.0min
+(Step: 22610/32322), train_loss: 2.3276, lr: 0.000003, spent time: 98.0min
+(Step: 22624/32322), val_loss: 2.3120, spent time: 99.0min
+(Step: 22933/32322), train_loss: 2.4399, lr: 0.000003, spent time: 100.0min
+(Step: 23256/32322), train_loss: 2.3401, lr: 0.000003, spent time: 102.0min
+(Step: 23579/32322), train_loss: 2.3399, lr: 0.000003, spent time: 103.0min
+(Step: 23902/32322), train_loss: 2.3891, lr: 0.000003, spent time: 104.0min
+(Step: 24225/32322), train_loss: 2.2912, lr: 0.000003, spent time: 106.0min
+(Step: 24548/32322), train_loss: 2.3333, lr: 0.000003, spent time: 107.0min
+(Step: 24871/32322), train_loss: 2.2872, lr: 0.000002, spent time: 108.0min
+(Step: 25194/32322), train_loss: 2.3243, lr: 0.000002, spent time: 110.0min
+(Step: 25517/32322), train_loss: 2.2252, lr: 0.000002, spent time: 111.0min
+(Step: 25840/32322), train_loss: 2.3045, lr: 0.000002, spent time: 113.0min
+(Step: 25856/32322), saved checkpoint to ../out/25856.pt, spent time: 113.0min
+(Step: 25856/32322), val_loss: 2.2928, spent time: 113.0min
+(Step: 26163/32322), train_loss: 2.3380, lr: 0.000002, spent time: 114.0min
+(Step: 26486/32322), train_loss: 2.2960, lr: 0.000002, spent time: 116.0min
+(Step: 26809/32322), train_loss: 2.2703, lr: 0.000002, spent time: 117.0min
+(Step: 27132/32322), train_loss: 2.2611, lr: 0.000002, spent time: 119.0min
+(Step: 27455/32322), train_loss: 2.3391, lr: 0.000002, spent time: 120.0min
+(Step: 27778/32322), train_loss: 2.3238, lr: 0.000002, spent time: 121.0min
+(Step: 28101/32322), train_loss: 2.2055, lr: 0.000002, spent time: 123.0min
+(Step: 28424/32322), train_loss: 2.2438, lr: 0.000002, spent time: 124.0min
+(Step: 28747/32322), train_loss: 2.2683, lr: 0.000002, spent time: 125.0min
+(Step: 29070/32322), train_loss: 2.2858, lr: 0.000002, spent time: 127.0min
+(Step: 29088/32322), val_loss: 2.2813, spent time: 127.0min
+(Step: 29393/32322), train_loss: 2.3411, lr: 0.000002, spent time: 129.0min
+(Step: 29716/32322), train_loss: 2.3219, lr: 0.000002, spent time: 130.0min
+(Step: 30039/32322), train_loss: 2.3600, lr: 0.000002, spent time: 131.0min
+(Step: 30362/32322), train_loss: 2.3743, lr: 0.000002, spent time: 133.0min
+(Step: 30685/32322), train_loss: 2.2922, lr: 0.000002, spent time: 134.0min
+(Step: 31008/32322), train_loss: 2.2417, lr: 0.000002, spent time: 135.0min
+(Step: 31331/32322), train_loss: 2.2882, lr: 0.000002, spent time: 137.0min
+(Step: 31654/32322), train_loss: 2.2183, lr: 0.000002, spent time: 138.0min
+(Step: 31977/32322), train_loss: 2.3228, lr: 0.000002, spent time: 140.0min
+(Step: 32300/32322), train_loss: 2.2792, lr: 0.000002, spent time: 141.0min
+(Step: 32320/32322), saved checkpoint to ../out/32320.pt, spent time: 141.0min
+(Step: 32320/32322), val_loss: 2.2715, spent time: 142.0min
+(Step: 32322/32322), train_loss: 2.2539, lr: 0.000002, spent time: 142.0min
+(Step: 32322/32322), val_loss: 2.2715, spent time: 142.0min
+wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:               lr ▁▃▄▅▆▇███████▇▇▇▆▆▆▆▅▅▅▅▅▄▄▃▃▃▂▂▂▁▁▁▁▁▁▁
+wandb: spent time (min) ▁▁▁▁▂▂▂▂▂▂▃▃▃▄▄▄▄▄▄▄▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇█████
+wandb:       train loss █▇▆▅▃▂▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:         val loss █▄▃▂▂▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:               lr 0.0
+wandb: spent time (min) 142
+wandb:       train loss 2.25388
+wandb:         val loss 2.27155
+wandb: 
+wandb: 🚀 View run lr0.000015 at: https://wandb.ai/cs336_assign1/test_model_lr_tuning/runs/du0k1p9c
+wandb: ⭐️ View project at: https://wandb.ai/cs336_assign1/test_model_lr_tuning
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20251225_160228-du0k1p9c/logs

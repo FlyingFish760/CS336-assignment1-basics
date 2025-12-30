@@ -67,9 +67,16 @@ def evaluate():
             logits = model(inputs)
             loss = cross_entropy(logits, targets)
             total_loss += loss
+    return total_loss / step
 
-    return total_loss / (step + 1)
-
+def timed(fn):
+    start = torch.cuda.Event(enable_timing=True)
+    end = torch.cuda.Event(enable_timing=True)
+    start.record()
+    result = fn()
+    end.record()
+    torch.cuda.synchronize()
+    return result, start.elapsed_time(end) / 1000
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="model pre-train")
@@ -104,6 +111,7 @@ if __name__ == "__main__":
     parser.add_argument("--wandb_team", type=str, default="cs336_assign1", help="Wandb team name")
     parser.add_argument("--wandb_project", type=str, default="model_pretrain", help="Wandb project name")
     parser.add_argument("--wandb_run", type=str, default="test_run", help="Wandb run name")
+    parser.add_argument("--use_jit", type=bool, default=False, help="Whether to use JIT-compiling to speed up training")
 
     args = parser.parse_args()
 
@@ -149,7 +157,7 @@ if __name__ == "__main__":
     
     # Define steps
     train_steps = len(train_dataloader)
-    log_steps = train_steps // 100
+    log_steps = train_steps // train_steps
     save_steps = train_steps // 5
     eval_steps = train_steps // 10
 
@@ -169,53 +177,93 @@ if __name__ == "__main__":
     
     #--------------Training loop---------------
     model = model.to(args.device)
-    start_time = time.time()
+
+    eager_times = []
     for step, (inputs, targets) in enumerate(train_dataloader, 
                                             start=start_step):
-        # Train step
-        inputs = inputs.to(args.device)
-        targets = targets.to(args.device)
-        train_loss = train_step(inputs, targets, step)
-
-        # Log training performance
-        if (step + 1) % log_steps == 0 or (step + 1) == train_steps:
-            lr = optimizer.param_groups[0]["lr"]
-            cur_time = time.time()
-            spent_time = (cur_time - start_time) // 60
-            log_info = f"(Step: {step + 1}/{train_steps}), train_loss: {train_loss:.4f}, lr: {lr:.6f}, spent time: {spent_time}min"
-            logger(log_info)
-            if args.use_wandb:
-                wandb_log = {
-                    "train loss": train_loss,
-                    "lr": lr,
-                    "spent time (min)": spent_time
-                }
-                wandb_run.log(wandb_log)
-
-        # Save checkpoints
-        os.makedirs(args.save_dir, exist_ok=True)
-        save_path = f"{args.save_dir}/{step + 1}.pt"
-        if (step + 1) % save_steps == 0:  
-            save_checkpoint(model, optimizer, step + 1, save_path)
-            cur_time = time.time()
-            spent_time = (cur_time - start_time) // 60
-            log_info = f"(Step: {step + 1}/{train_steps}), saved checkpoint to {save_path}, spent time: {spent_time}min"
-            logger(log_info)
+        if step < 10:
+            # Train step
+            inoputs = inputs.to(args.device)
+            targets = targets.to(args.device)
+            _, eager_time = timed(lambda: train_step(inputs, targets, step))
+            eager_times.append(eager_time)
+            print(f"eager train time {step}: {eager_time}")
+        else: break
+    print("~" * 10)
+    
 
 
-        # Evaluate validation loss
-        if (step + 1) % eval_steps == 0 or (step + 1) == train_steps:
-            val_loss = evaluate()
-            cur_time = time.time()
-            spent_time = (cur_time - start_time) // 60
-            log_info = f"(Step: {step + 1}/{train_steps}), val_loss: {val_loss:.4f}, spent time: {spent_time}min"
-            logger(log_info)
-            if args.use_wandb:
-                wandb_log = {
-                    "val loss": val_loss,
-                    "spent time (min)": spent_time
-                }
-                wandb_run.log(wandb_log)
 
-    if args.use_wandb:
-        wandb_run.finish()
+
+
+
+    #--------------Init model, optimizer, dataloader---------------
+    model = TransformerLM(
+        vocab_size=args.vocab_size,
+        d_model=args.d_model,
+        num_heads= args.num_heads,
+        d_ff = args.d_ff,
+        context_length=args.context_length,
+        theta = args.theta,
+        num_layers=args.num_layers
+    )
+
+    start_lr = 0.1 * args.max_lr
+    optimizer = AdamW(
+        model.parameters(),
+        start_lr,
+        betas=args.betas,
+        weight_decay=args.weight_decay,
+        eps=1e-8
+    )
+
+    # Load checkpoints if needed
+    if args.load_path is not None:
+        start_step = load_checkpoint(args.load_path, model, optimizer)
+    else:
+        start_step = 0
+
+    train_ds = PretrainDataset(args.train_data_path,
+                               context_length=args.context_length)
+    train_dataloader = DataLoader(train_ds, 
+                                  batch_size=args.batch_size,
+                                  shuffle=True,
+                                  drop_last=True,
+                                  num_workers=0)
+    val_ds = PretrainDataset(args.val_data_path,
+                               context_length=args.context_length)
+    val_dataloader = DataLoader(val_ds, 
+                                  batch_size=args.batch_size,
+                                  shuffle=False,
+                                  drop_last=True)
+    
+    # Define steps
+    train_steps = len(train_dataloader)
+    log_steps = train_steps // train_steps
+    save_steps = train_steps // 5
+    eval_steps = train_steps // 10
+
+    train_step_opt = torch.compile(train_step, mode="reduce-overhead")
+
+    model = model.to(args.device)
+    compile_times = []
+    for step, (inputs, targets) in enumerate(train_dataloader, 
+                                            start=start_step):
+        if step < 10:
+            # Train step
+            inputs = inputs.to(args.device)
+            targets = targets.to(args.device)
+            _, compile_time = timed(lambda: train_step_opt(inputs, targets, step))
+            compile_times.append(compile_time)
+            print(f"compile train time {step}: {compile_time}")
+        else: break
+    print("~" * 10)
+
+    eager_med = np.median(eager_times)
+    compile_med = np.median(compile_times)
+    speedup = eager_med / compile_med
+    assert speedup > 1
+    print(
+        f"(train) eager median: {eager_med}, compile median: {compile_med}, speedup: {speedup}x"
+    )
+    print("~" * 10)

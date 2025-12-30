@@ -1,0 +1,107 @@
+root@autodl-container-0rqrcn89lq-e12628cd:~/autodl-tmp/cs336_basics# uv run torchrun --nproc-per-node 4 trainer.py --d_model 512 --num_heads 16 --
+d_ff 1344 --context_length 256 --num_layers 4  --batch_size 64 --train_data_path ../data/TinyStoriesV2-GPT4-train.npy --val_data_path ../data/Tiny
+StoriesV2-GPT4-valid.npy --max_lr 0.000015 --use_wandb True --wandb_project test_model_lr_tuning --wandb_run test_ddp_lr0.000015 --dist_train True
+ 
+[rank3]:[E1229 17:44:16.906097463 ProcessGroupNCCL.cpp:1899] [PG ID 0 PG GUID 0(default_pg) Rank 3] Process group watchdog thread terminated with exception: CUDA error: an illegal memory access was encountered
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+Exception raised from c10_cuda_check_implementation at /pytorch/c10/cuda/CUDAException.cpp:43 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0x98 (0x7f988f9785e8 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libc10.so)
+frame #1: c10::detail::torchCheckFail(char const*, char const*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) + 0xe0 (0x7f988f90d4a2 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libc10.so)
+frame #2: c10::cuda::c10_cuda_check_implementation(int, char const*, char const*, int, bool) + 0x3c2 (0x7f988fdf9422 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libc10_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::WorkNCCL::finishedGPUExecutionInternal() const + 0x56 (0x7f982556d5a6 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::WorkNCCL::isCompleted() + 0x70 (0x7f982557d840 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #5: c10d::ProcessGroupNCCL::watchdogHandler() + 0x782 (0x7f982557f3d2 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #6: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x14d (0x7f9825580fdd in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #7: <unknown function> + 0xdbbf4 (0x7f99306febf4 in /root/miniconda3/bin/../lib/libstdc++.so.6)
+frame #8: <unknown function> + 0x94ac3 (0x7f9932d89ac3 in /usr/lib/x86_64-linux-gnu/libc.so.6)
+frame #9: clone + 0x44 (0x7f9932e1aa04 in /usr/lib/x86_64-linux-gnu/libc.so.6)
+
+[rank2]:[E1229 17:44:17.926274820 ProcessGroupNCCL.cpp:1899] [PG ID 0 PG GUID 0(default_pg) Rank 2] Process group watchdog thread terminated with exception: CUDA error: an illegal memory access was encountered
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+Exception raised from c10_cuda_check_implementation at /pytorch/c10/cuda/CUDAException.cpp:43 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0x98 (0x7f1e9a0005e8 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libc10.so)
+frame #1: c10::detail::torchCheckFail(char const*, char const*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) + 0xe0 (0x7f1e99f954a2 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libc10.so)
+frame #2: c10::cuda::c10_cuda_check_implementation(int, char const*, char const*, int, bool) + 0x3c2 (0x7f1f051a5422 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libc10_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::WorkNCCL::finishedGPUExecutionInternal() const + 0x56 (0x7f1e9ad6d5a6 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::WorkNCCL::isCompleted() + 0x70 (0x7f1e9ad7d840 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #5: c10d::ProcessGroupNCCL::watchdogHandler() + 0x782 (0x7f1e9ad7f3d2 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #6: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x14d (0x7f1e9ad80fdd in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #7: <unknown function> + 0xdbbf4 (0x7f1fa5dcfbf4 in /root/miniconda3/bin/../lib/libstdc++.so.6)
+frame #8: <unknown function> + 0x94ac3 (0x7f1fa845aac3 in /usr/lib/x86_64-linux-gnu/libc.so.6)
+frame #9: clone + 0x44 (0x7f1fa84eba04 in /usr/lib/x86_64-linux-gnu/libc.so.6)
+
+[rank1]:[E1229 17:44:17.956566062 ProcessGroupNCCL.cpp:1899] [PG ID 0 PG GUID 0(default_pg) Rank 1] Process group watchdog thread terminated with exception: CUDA error: an illegal memory access was encountered
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+Exception raised from c10_cuda_check_implementation at /pytorch/c10/cuda/CUDAException.cpp:43 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0x98 (0x7f430ef785e8 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libc10.so)
+frame #1: c10::detail::torchCheckFail(char const*, char const*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) + 0xe0 (0x7f430ef0d4a2 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libc10.so)
+frame #2: c10::cuda::c10_cuda_check_implementation(int, char const*, char const*, int, bool) + 0x3c2 (0x7f430f369422 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libc10_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::WorkNCCL::finishedGPUExecutionInternal() const + 0x56 (0x7f42a4b6d5a6 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::WorkNCCL::isCompleted() + 0x70 (0x7f42a4b7d840 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #5: c10d::ProcessGroupNCCL::watchdogHandler() + 0x782 (0x7f42a4b7f3d2 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #6: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x14d (0x7f42a4b80fdd in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #7: <unknown function> + 0xdbbf4 (0x7f43afc6fbf4 in /root/miniconda3/bin/../lib/libstdc++.so.6)
+frame #8: <unknown function> + 0x94ac3 (0x7f43b22faac3 in /usr/lib/x86_64-linux-gnu/libc.so.6)
+frame #9: clone + 0x44 (0x7f43b238ba04 in /usr/lib/x86_64-linux-gnu/libc.so.6)
+
+[rank0]:[E1229 17:44:17.958872422 ProcessGroupNCCL.cpp:1899] [PG ID 0 PG GUID 0(default_pg) Rank 0] Process group watchdog thread terminated with exception: CUDA error: an illegal memory access was encountered
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+Exception raised from c10_cuda_check_implementation at /pytorch/c10/cuda/CUDAException.cpp:43 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0x98 (0x7fe55a1785e8 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libc10.so)
+frame #1: c10::detail::torchCheckFail(char const*, char const*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) + 0xe0 (0x7fe55a10d4a2 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libc10.so)
+frame #2: c10::cuda::c10_cuda_check_implementation(int, char const*, char const*, int, bool) + 0x3c2 (0x7fe55a5f3422 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libc10_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::WorkNCCL::finishedGPUExecutionInternal() const + 0x56 (0x7fe4efd6d5a6 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::WorkNCCL::isCompleted() + 0x70 (0x7fe4efd7d840 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #5: c10d::ProcessGroupNCCL::watchdogHandler() + 0x782 (0x7fe4efd7f3d2 in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #6: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x14d (0x7fe4efd80fdd in /root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so)
+frame #7: <unknown function> + 0xdbbf4 (0x7fe5faefdbf4 in /root/miniconda3/bin/../lib/libstdc++.so.6)
+frame #8: <unknown function> + 0x94ac3 (0x7fe5fd588ac3 in /usr/lib/x86_64-linux-gnu/libc.so.6)
+frame #9: clone + 0x44 (0x7fe5fd619a04 in /usr/lib/x86_64-linux-gnu/libc.so.6)
+
+W1229 17:44:17.358000 2724 torch/distributed/elastic/multiprocessing/api.py:900] Sending process 2789 closing signal SIGTERM
+W1229 17:44:17.359000 2724 torch/distributed/elastic/multiprocessing/api.py:900] Sending process 2790 closing signal SIGTERM
+W1229 17:44:17.360000 2724 torch/distributed/elastic/multiprocessing/api.py:900] Sending process 2791 closing signal SIGTERM
+E1229 17:44:17.587000 2724 torch/distributed/elastic/multiprocessing/api.py:874] failed (exitcode: -6) local_rank: 3 (pid: 2792) of binary: /root/autodl-tmp/.venv/bin/python
+Traceback (most recent call last):
+  File "/root/autodl-tmp/.venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/distributed/run.py", line 892, in main
+    run(args)
+  File "/root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/distributed/run.py", line 883, in run
+    elastic_launch(
+  File "/root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 139, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/autodl-tmp/.venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 270, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+=====================================================
+trainer.py FAILED
+-----------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+-----------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2025-12-29_17:44:17
+  host      : autodl-container-0rqrcn89lq-e12628cd
+  rank      : 3 (local_rank: 3)
+  exitcode  : -6 (pid: 2792)
+  error_file: <N/A>
+  traceback : Signal 6 (SIGABRT) received by PID 2792

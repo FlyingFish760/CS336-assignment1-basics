@@ -118,11 +118,11 @@ if __name__ == "__main__":
         theta=10000,
         num_layers=4
     )
-    state_dict = torch.load(r"..\out\5.pt")
+    state_dict = torch.load(r"..\out\32320.pt")
     model_state = state_dict["model_state_dict"]
     model.load_state_dict(model_state)
-    tokenizer = AutoTokenizer.from_pretrained("gpt2")
-    generate(prompt="Hello world,",
+    tokenizer = AutoTokenizer.from_pretrained("gpt2", local_files_only=True)
+    generate(prompt="Can I",
              tokenizer = tokenizer,
              model=model,
              max_generate_tokens=16,

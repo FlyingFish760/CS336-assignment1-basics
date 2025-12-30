@@ -1,18 +1,24 @@
 import os
 import math
+import random
 from collections.abc import Callable, Iterable
 
 import torch
 import torch.nn as nn
+import torch.distributed as dist
+import numpy as np
 
 
 ################### Saving tools ##############################
-def save_checkpoint(model: nn.Module,
+def save_checkpoint(model: nn.Module | nn.parallel.DistributedDataParallel,
                     optimizer: torch.optim.Optimizer,
                     iteration: int,
                     out: str | os.PathLike):
     state_dict = {}
-    model_state_dict = model.state_dict()
+    if isinstance(model, torch.nn.parallel.DistributedDataParallel):
+        model_state_dict = model.module.state_dict()
+    else:
+        model_state_dict = model.state_dict()
     opt_state_dict = optimizer.state_dict()
     
     state_dict["model_state_dict"] = model_state_dict
@@ -72,6 +78,21 @@ def gradient_clipping_(params: Iterable[nn.Parameter], max_l2_norm: float):
 def logger(content):
     print(content)
 
+################### Other tools ##############################
+def setup_seed(seed: int):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+################### Distributed training tools ##############################
+def is_main_process():
+    return not dist.is_initialized() or dist.get_rank() == 0
+
+################### Trainer tools ##############################
 
 
 if __name__ == "__main__":
