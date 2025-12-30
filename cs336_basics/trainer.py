@@ -1,6 +1,7 @@
 import argparse
 import time
 import os
+import yaml
 
 import numpy as np
 import torch
@@ -9,11 +10,9 @@ from torch.utils.data import DataLoader
 from jaxtyping import Int, Float
 import wandb
 
-from cs336_basics.model import TransformerLM
 from cs336_basics.nn_utils import cross_entropy
-from cs336_basics.optimizer import AdamW
 from cs336_basics.data import get_batch, PretrainDataset
-from cs336_basics.utils import learning_rate_schedule, save_checkpoint, load_checkpoint, logger
+from cs336_basics.utils import learning_rate_schedule, save_checkpoint, load_checkpoint, logger, init_model_optimizer
 
 TOKENIZER_VOCAB_SIZE = 50257
 
@@ -34,10 +33,10 @@ def train_step(inputs: Int[Tensor, "b seq_len"],
     # Set the optimizer learning rate
     lr = learning_rate_schedule(
         step + 1, 
-        max_lr=args.max_lr,
-        min_lr=args.max_lr * 0.1,
-        warmup_iters=int(train_steps * 0.1),
-        cosine_cycle_iters=int(train_steps * 0.9)
+        max_lr=model_opt_config["max_lr"],
+        min_lr=model_opt_config["max_lr"] * 0.1,
+        warmup_iters=int(train_steps * training_config["warmup_ratio"]),
+        cosine_cycle_iters=int(train_steps * training_config["cosine_ratio"])
     )
     for param_group in optimizer.param_groups:
         param_group["lr"] = lr
@@ -74,58 +73,29 @@ def evaluate():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="model pre-train")
 
-    # Model config 
-    parser.add_argument("--vocab_size", type=int, default=TOKENIZER_VOCAB_SIZE, help="Model vocabulary size")
-    parser.add_argument("--d_model", type=int, default=1600, help="Model hidden dimension size")
-    parser.add_argument("--num_heads", type=int, default=25, help="Number of attention heads")
-    parser.add_argument("--d_ff", type=int, default=6400, help="Feed-foward network dimension size")
-    parser.add_argument("--context_length", type=int, default=1024, help="Context length")
-    parser.add_argument("--theta", type=float, default=10000.0, help="Base angle of RoPE")
-    parser.add_argument("--num_layers", type=int, default=48, help="Number of transformer blocks")
-
-    # Optimizier config
-    parser.add_argument("--max_lr", type=float, default=1e-5, help="Maximum learning rate")
-    parser.add_argument("--betas", type=list, default=[0.9, 0.99], help="Moment updating parameters of the AdamW optimizer")
-    parser.add_argument("--weight_decay", type=float, default=1e-5, help="Weigth decay rate of the AdamW optimizer")
-
     # Trainer config
+    parser.add_argument("--config", type=str, default="./configs/base.yaml", help="Path to config file")
     parser.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu", help="Device for training")
     parser.add_argument("--batch_size", type=int, help="Number of samples per batch")
-    parser.add_argument("--train_data_path", type=str, default="../data/TinyStoriesV2-GPT4-train.npy", help="Path of the training dataset")
-    parser.add_argument("--val_data_path", type=str, default="../data/TinyStoriesV2-GPT4-valid.npy", help="Path of the validation dataset")
+    parser.add_argument("--log_step_rate", type=float, default=0.01, help="Rate of train steps to log train loss")
+    parser.add_argument("--save_step_rate", type=float, default=0.2, help="Rate of train steps to save checkpoint")
+    parser.add_argument("--eval_step_rate", type=float, default=0.1, help="Rate of train steps to evaluate model performance")
     # parser.add_argument("--num_epochs", type=int, default=1, help="Number of training epochs")
-    # parser.add_argument("--num_steps", type=int, help="Number of training steps")
-    # parser.add_argument("--save_steps", type=int, help="Number of steps to save checkpoints")
     parser.add_argument("--save_dir", type=str, default="../out", help="Directory to save checkpoints")
     parser.add_argument("--load_path", type=str, default=None, help="Path to load checkpoints")
-    # parser.add_argument("--log_steps", type=int, default=100, help="Number of steps to log training performance")
-    # parser.add_argument("--eval_steps", type=int, default=100, help="Number of steps to evaluate validation loss")
-    parser.add_argument("--use_wandb", action="store_true", help="Whether to use wandb to log")
-    parser.add_argument("--wandb_team", type=str, default="cs336_assign1", help="Wandb team name")
-    parser.add_argument("--wandb_project", type=str, default="model_pretrain", help="Wandb project name")
-    parser.add_argument("--wandb_run", type=str, default="test_run", help="Wandb run name")
 
     args = parser.parse_args()
 
-    #--------------Init model, optimizer, dataloader---------------
-    model = TransformerLM(
-        vocab_size=args.vocab_size,
-        d_model=args.d_model,
-        num_heads= args.num_heads,
-        d_ff = args.d_ff,
-        context_length=args.context_length,
-        theta = args.theta,
-        num_layers=args.num_layers
-    )
+    # Parse config file
+    with open(args.config, "r") as f:
+        cfg = yaml.safe_load(f)
+    model_opt_config = cfg["model_opt_config"]
+    data_config = cfg["data"]
+    training_config = cfg["training"]
+    wandb_config = cfg["wandb_logging"]
 
-    start_lr = 0.1 * args.max_lr
-    optimizer = AdamW(
-        model.parameters(),
-        start_lr,
-        betas=args.betas,
-        weight_decay=args.weight_decay,
-        eps=1e-8
-    )
+    #--------------Set up model, optimizer---------------
+    model, optimizer = init_model_optimizer(model_opt_config, args.device)
 
     # Load checkpoints if needed
     if args.load_path is not None:
@@ -133,34 +103,29 @@ if __name__ == "__main__":
     else:
         start_step = 0
 
-    train_ds = PretrainDataset(args.train_data_path,
-                               context_length=args.context_length)
+    #--------------Set up dataloader---------------
+    train_ds = PretrainDataset(data_config["train_data_path"],
+                               context_length=data_config["sample_length"])
     train_dataloader = DataLoader(train_ds, 
                                   batch_size=args.batch_size,
                                   shuffle=True,
                                   drop_last=True,
                                   num_workers=0)
-    val_ds = PretrainDataset(args.val_data_path,
-                               context_length=args.context_length)
+    val_ds = PretrainDataset(data_config["val_data_path"],
+                             context_length=data_config["sample_length"])
     val_dataloader = DataLoader(val_ds, 
                                   batch_size=args.batch_size,
                                   shuffle=False,
                                   drop_last=True)
-    
-    # Define steps
-    train_steps = len(train_dataloader)
-    log_steps = train_steps // 100
-    save_steps = train_steps // 5
-    eval_steps = train_steps // 10
 
     #--------------Init wandb---------------
-    if args.use_wandb:
+    if wandb_config["use_wandb"]:
         wandb_run = wandb.init(
-            entity=args.wandb_team,
-            project=args.wandb_project,
-            name=args.wandb_run,
+            entity=wandb_config["wandb_team"],
+            project=wandb_config["wandb_project"],
+            name=wandb_config["wandb_run"],
             config={
-                "max_learning_rate": args.max_lr,
+                "max_learning_rate": model_opt_config["max_lr"],
                 "lr schedule strategy": "warmup + cos + end",
                 "model config": "test model",
                 "dataset": "TinyStoriesV2-GPT4"
@@ -168,12 +133,16 @@ if __name__ == "__main__":
         )
     
     #--------------Training loop---------------
-    model = model.to(args.device)
-    model.compile(mode="reduce-overhead")
+    # Define steps
+    train_steps = len(train_dataloader)
+    log_steps = int(train_steps * args.log_step_rate)
+    save_steps = int(train_steps * args.save_step_rate)
+    eval_steps = int(train_steps * args.eval_step_rate)
+
     start_time = time.time()
     for step, (inputs, targets) in enumerate(train_dataloader, 
                                             start=start_step):
-        # Train step
+        # Train 
         inputs = inputs.to(args.device)
         targets = targets.to(args.device)
         train_loss = train_step(inputs, targets, step)
@@ -185,7 +154,7 @@ if __name__ == "__main__":
             spent_time = (cur_time - start_time) // 60
             log_info = f"(Step: {step + 1}/{train_steps}), train_loss: {train_loss:.4f}, lr: {lr:.6f}, spent time: {spent_time}min"
             logger(log_info)
-            if args.use_wandb:
+            if wandb_config["use_wandb"]:
                 wandb_log = {
                     "train loss": train_loss,
                     "lr": lr,
@@ -211,12 +180,12 @@ if __name__ == "__main__":
             spent_time = (cur_time - start_time) // 60
             log_info = f"(Step: {step + 1}/{train_steps}), val_loss: {val_loss:.4f}, spent time: {spent_time}min"
             logger(log_info)
-            if args.use_wandb:
+            if wandb_config["use_wandb"]:
                 wandb_log = {
                     "val loss": val_loss,
                     "spent time (min)": spent_time
                 }
                 wandb_run.log(wandb_log)
 
-    if args.use_wandb:
+    if wandb_config["use_wandb"]:
         wandb_run.finish()

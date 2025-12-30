@@ -93,10 +93,33 @@ def is_main_process():
     return not dist.is_initialized() or dist.get_rank() == 0
 
 ################### Trainer tools ##############################
+from model import TransformerLM
+from optimizer import AdamW
 
+def init_model_optimizer(model_opt_config: dict, device: str):
+    model = TransformerLM(
+        vocab_size=model_opt_config["vocab_size"],
+        d_model=model_opt_config["d_model"],
+        num_heads= model_opt_config["num_heads"],
+        d_ff = model_opt_config["d_ff"],
+        context_length=model_opt_config["context_length"],
+        theta = model_opt_config["theta"],
+        num_layers=model_opt_config["num_layers"]
+    )
+
+    optimizer = AdamW(
+        model.parameters(),
+        model_opt_config["max_lr"],
+        betas=model_opt_config["betas"],
+        weight_decay=model_opt_config["weight_decay"],
+        eps=1e-8
+    )
+
+    model = model.to(device)
+    model.compile(mode="reduce-overhead")
+    return model, optimizer
 
 if __name__ == "__main__":
-    from model import TransformerLM
 
     test_model_config = {
         "num_layers": 4,

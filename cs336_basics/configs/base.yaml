@@ -1,0 +1,26 @@
+model_opt_config:
+  vocab_size: 50257
+  d_model: 1600
+  d_ff: 512
+  num_heads: 16
+  num_layers: 4
+  context_length: 256
+  theta: 10000.0
+  max_lr: 1.0e-4
+  betas: [0.9, 0.99]
+  weight_decay: 1.0e-5
+
+training:
+  warmup_ratio: 0.1
+  cosine_ratio: 0.9
+  
+data:
+  train_data_path: "../data/TinyStoriesV2-GPT4-train.npy"
+  val_data_path: "../data/TinyStoriesV2-GPT4-valid.npy"
+  sample_length: 256
+
+wandb_logging:
+  use_wandb: False
+  wandb_team: "cs336_assign1"
+  wandb_project: "test_model_lr_tuning"
+  wandb_run: "test_run"
