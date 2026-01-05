@@ -95,7 +95,6 @@ if __name__ == "__main__":
     wandb_config = cfg["wandb_logging"]
 
     #--------------Set up model, optimizer---------------
-    torch.set_float32_matmul_precision('high')  
     model, optimizer = init_model_optimizer(model_opt_config, args.device)
 
     # Load checkpoints if needed
@@ -160,7 +159,7 @@ if __name__ == "__main__":
 
         # Save checkpoints
         os.makedirs(args.save_dir, exist_ok=True)
-        save_path = f"{args.save_dir}/{step + 1}.pt"
+        save_path = f"{args.save_dir}/bs_{args.batch_size}_lr_{model_opt_config["max_lr"]}_{step + 1}.pt"
         if (step + 1) % save_steps == 0:  
             save_checkpoint(model, optimizer, step + 1, save_path)
             cur_time = time.time()

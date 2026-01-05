@@ -78,7 +78,6 @@ def generate(prompt: str,
         # Append the new token to the inputs
         token_ids = torch.cat((token_ids, next_token_ids), dim=-1)
 
-        print(token_ids)
         text_generated = tokenizer.batch_decode(token_ids)
         print(text_generated)
     
@@ -118,15 +117,18 @@ if __name__ == "__main__":
         theta=10000,
         num_layers=4
     )
-    state_dict = torch.load(r"..\out\32320.pt")
+    state_dict = torch.load(r".\out\12928.pt")
     model_state = state_dict["model_state_dict"]
     model.load_state_dict(model_state)
     tokenizer = AutoTokenizer.from_pretrained("gpt2", local_files_only=True)
-    generate(prompt="Can I",
+
+    temperature = 0.5
+    thres_p = 1
+    generate(prompt="Once upon a time",
              tokenizer = tokenizer,
              model=model,
-             max_generate_tokens=16,
-             temperature=0.5,
-             thres_p=0.8
+             max_generate_tokens=256,
+             temperature=temperature,
+             thres_p=thres_p
              )
     
