@@ -124,12 +124,7 @@ if __name__ == "__main__":
             entity=wandb_config["wandb_team"],
             project=wandb_config["wandb_project"],
             name=wandb_config["wandb_run"],
-            config={
-                "max_learning_rate": model_opt_config["max_lr"],
-                "lr schedule strategy": "warmup + cos + end",
-                "model config": "test model",
-                "dataset": "TinyStoriesV2-GPT4"
-            }
+            config=wandb_config["config"]
         )
     
     #--------------Training loop---------------

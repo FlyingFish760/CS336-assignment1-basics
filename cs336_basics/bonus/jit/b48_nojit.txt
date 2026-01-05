@@ -1,0 +1,15 @@
+root@autodl-container-f42f45a886-93b6a2c0:~/autodl-tmp/cs336_basics# uv run python trainer.py --config configs/base.yaml --batch_size 48 
+wandb: Currently logged in as: 760384579 (cs336_assign1) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Changes to your `wandb` environment variables will be ignored because your `wandb` session has already started. For more information on how to modify your settings with `wandb.init()` arguments, please refer to https://wandb.me/wandb-init.
+wandb: Tracking run with wandb version 0.21.2
+wandb: Run data is saved locally in /root/autodl-tmp/cs336_basics/wandb/run-20251231_110538-hpai2fsz
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run lr_0.0005_nojit
+wandb: ⭐️ View project at https://wandb.ai/cs336_assign1/test_model_lr_tuning
+wandb: 🚀 View run at https://wandb.ai/cs336_assign1/test_model_lr_tuning/runs/hpai2fsz
+/root/autodl-tmp/cs336_basics/data.py:91: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:203.)
+  inputs = torch.from_numpy(chunk[:-1]).to(self.dtype)
+(Step: 430/43096), train_loss: 3.7476, lr: 0.000050, spent time: 2.0min
+(Step: 860/43096), train_loss: 2.8450, lr: 0.000100, spent time: 5.0min
+(Step: 1290/43096), train_loss: 2.5360, lr: 0.000150, spent time: 8.0min
+(Step: 1720/43096), train_loss: 2.2104, lr: 0.000200, spent time: 11.0min

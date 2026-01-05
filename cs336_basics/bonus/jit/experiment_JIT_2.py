@@ -49,7 +49,6 @@ weight_decay = 1e-5
 
 train_data_path = ""
 batch_size = 0
-val_data_path = ""
 device = ""
 
 compile_mode = "reduce-overhead"
@@ -109,12 +108,6 @@ if __name__ == "__main__":
                                   shuffle=True,
                                   drop_last=True,
                                   num_workers=0)
-    val_ds = PretrainDataset(val_data_path,
-                               context_length=test_model_config["context_length"])
-    val_dataloader = DataLoader(val_ds, 
-                                  batch_size=batch_size,
-                                  shuffle=False,
-                                  drop_last=True)
     train_steps = len(train_dataloader)
 
     ################# Eager ###################

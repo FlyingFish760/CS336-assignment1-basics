@@ -1,7 +1,7 @@
 model_opt_config:
   vocab_size: 50257
-  d_model: 1600
-  d_ff: 512
+  d_model: 512
+  d_ff: 1344
   num_heads: 16
   num_layers: 4
   context_length: 256
@@ -20,7 +20,10 @@ data:
   sample_length: 256
 
 wandb_logging:
-  use_wandb: False
+  use_wandb: True
   wandb_team: "cs336_assign1"
   wandb_project: "test_model_lr_tuning"
   wandb_run: "test_run"
+  config:
+    max_learning_rate: 1.0e-4
+    model_size: "test model"
