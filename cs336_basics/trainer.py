@@ -95,6 +95,7 @@ if __name__ == "__main__":
     wandb_config = cfg["wandb_logging"]
 
     #--------------Set up model, optimizer---------------
+    torch.set_float32_matmul_precision('high')  
     model, optimizer = init_model_optimizer(model_opt_config, args.device)
 
     # Load checkpoints if needed
