@@ -17,12 +17,12 @@ def tokenize_file(file_path: str, out_path: str, tokenizer:PreTrainedTokenizer):
     print(f"Tokenized data saved to '{out_path}'!")
 
     import numpy as np
-from transformers import PreTrainedTokenizer
 
 def tokenize_file_new(
     file_path: str,
     out_path: str,
-    tokenizer: PreTrainedTokenizer
+    tokenizer: PreTrainedTokenizer,
+    dtype=np.int64
 ):
     # ===============================
     # Pass 1: count total tokens
@@ -45,7 +45,8 @@ def tokenize_file_new(
     token_ids = np.memmap(
         out_path,
         mode="w+",
-        shape=(total_tokens,)
+        shape=(total_tokens,),
+        dtype=dtype
     )
 
     # ===============================
