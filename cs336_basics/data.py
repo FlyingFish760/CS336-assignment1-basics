@@ -16,6 +16,57 @@ def tokenize_file(file_path: str, out_path: str, tokenizer:PreTrainedTokenizer):
     np.save(out_path, token_ids)
     print(f"Tokenized data saved to '{out_path}'!")
 
+    import numpy as np
+from transformers import PreTrainedTokenizer
+
+def tokenize_file_new(
+    file_path: str,
+    out_path: str,
+    tokenizer: PreTrainedTokenizer
+):
+    # ===============================
+    # Pass 1: count total tokens
+    # ===============================
+    total_tokens = 0
+    with open(file_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            total_tokens += len(
+                tokenizer(line, add_special_tokens=False).input_ids
+            )
+
+    print(f"Total tokens: {total_tokens:,}")
+
+    # ===============================
+    # Allocate memory-mapped array
+    # ===============================
+    token_ids = np.memmap(
+        out_path,
+        mode="w+",
+        shape=(total_tokens,)
+    )
+
+    # ===============================
+    # Pass 2: write tokens
+    # ===============================
+    idx = 0
+    with open(file_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+
+            ids = tokenizer(line, add_special_tokens=False).input_ids
+            n = len(ids)
+            token_ids[idx:idx+n] = ids
+            idx += n
+
+    token_ids.flush()
+    print(f"Tokenized data written to '{out_path}'")
+
+
 
 def get_batch(x: np.ndarray, batch_size: int, context_length: int, device: str = "cpu"):
     inputs = torch.empty((batch_size, context_length), device=device, dtype=torch.int64)
