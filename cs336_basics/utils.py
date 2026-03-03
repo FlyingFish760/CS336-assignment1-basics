@@ -93,8 +93,8 @@ def is_main_process():
     return not dist.is_initialized() or dist.get_rank() == 0
 
 ################### Trainer tools ##############################
-from model import TransformerLM
-from optimizer import AdamW
+from .model import TransformerLM
+from .optimizer import AdamW
 
 def init_model_optimizer(model_opt_config: dict, device: str):
     model = TransformerLM(

@@ -16,7 +16,6 @@ def tokenize_file(file_path: str, out_path: str, tokenizer:PreTrainedTokenizer):
     np.save(out_path, token_ids)
     print(f"Tokenized data saved to '{out_path}'!")
 
-    import numpy as np
 
 def tokenize_file_new(
     file_path: str,

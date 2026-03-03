@@ -17,6 +17,7 @@ from cs336_basics.nn_utils import softmax, cross_entropy
 from cs336_basics.optimizer import AdamW 
 from cs336_basics.data import get_batch
 from cs336_basics.utils import *
+from cs336_basics.BPE_trainer import BPETokenizerTrainer
 
 def run_linear(
     d_in: int,
@@ -711,4 +712,10 @@ def run_train_bpe(
                 representing that <token1> was merged with <token2>.
                 Merges are ordered by order of creation.
     """
-    raise NotImplementedError
+    bpe_trainer = BPETokenizerTrainer(
+        input_path,
+        vocab_size,
+        special_tokens,
+        special_tokens[0]
+    )
+    return bpe_trainer.train()
