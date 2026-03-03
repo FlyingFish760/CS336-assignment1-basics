@@ -3,8 +3,9 @@ import regex as re
 from typing import List, Dict, Tuple
 import heapq
 import collections
-import json
 import pickle
+import os
+import time
 
 from cs336_basics.pretokenization_example import find_chunk_boundaries
 
@@ -32,12 +33,20 @@ class BPETokenizerTrainer():
                  data_path: str,
                  vocab_size: int,
                  special_tokens: List[str],
-                 chunk_special_token: str):
+                 chunk_special_token: str,
+                 vocab_save_path: str,
+                 merge_save_path: str,
+                 save_vocab: bool = True,
+                 save_merge: bool = True,):
         self.data_path = data_path
         self.vocab_size = vocab_size
         self.special_tokens = special_tokens
         self.chunk_special_token = chunk_special_token
         self.vocab = self.init_vocab()
+        self.save_vocab = save_vocab
+        self.save_merge = save_merge
+        self.vocab_save_path = vocab_save_path
+        self.merge_save_path = merge_save_path
 
     def remove_special_tokens(self, text: str):
         escaped_special_tokens = [re.escape(special_tok) for special_tok in self.special_tokens]
@@ -148,11 +157,29 @@ class BPETokenizerTrainer():
             if cp in pair_counts and pair_counts[cp] > 0:
                 heapq.heappush(pair_heap, (-pair_counts[cp], ReverseLexOrderPair(cp), cp))
 
+    def serialize_vocab(self, vocab):
+        os.makedirs(os.path.dirname(self.vocab_save_path), exist_ok=True)
+        with open(self.vocab_save_path, "wb") as f:
+            pickle.dump(vocab, f)
+        print(f"Saved vocabulary with {len(vocab)} tokens to {self.merge_save_path}")
+        
+
+    def serialize_merges(self, merges):
+        os.makedirs(os.path.dirname(self.merge_save_path), exist_ok=True)
+        with open(self.merge_save_path, "wb") as f:
+            pickle.dump(merges, f)
+        print(f"Saved {len(merges)} merges to {self.merge_save_path}")
+
 
     def train(self) -> Tuple[Dict[int,bytes], List[tuple[bytes, bytes]]]:
+        start_time = time.time()
         # Pre-tokenization
         pre_token_counts = self.pretokenize_file()
+        end_time = time.time()
+        consumed_time = (end_time - start_time) / 60
+        print(f"-----Pre-tokenization took {consumed_time:.3f} mins-----")
 
+        start_time = time.time()
         # Init byte-pair counts
         pair_counts = {}
         pair_to_pre_token = collections.defaultdict(set)
@@ -166,7 +193,11 @@ class BPETokenizerTrainer():
         pair_heap = []
         for pair, count in pair_counts.items():
             heapq.heappush(pair_heap, (-count, ReverseLexOrderPair(pair), pair))
+        end_time = time.time()
+        consumed_time = (end_time - start_time) / 60
+        print(f"-----Init pair-counts and pair-heap took {consumed_time:.3f} mins-----")
 
+        start_time = time.time()
         # Training process (merge pairs until reaching the vocab size/ no pairs to merge)
         initial_vocab_size = len(self.vocab)
 
@@ -192,28 +223,34 @@ class BPETokenizerTrainer():
                 pair_heap,
                 pair_to_pre_token
             )
+        end_time = time.time()
+        consumed_time = (end_time - start_time) / 60
+        print(f"-----Training process (merging) took {consumed_time:.3f} mins-----")
+
+        if self.save_vocab:
+            self.serialize_vocab(self.vocab)
+        if self.save_merge:
+            self.serialize_merges(merges)
 
         return (self.vocab, merges)
 
 
 if __name__ == "__main__":
-    chunk_token = "<|endoftext|>"
-    vocab_size = 2000
-    special_tokens = ["<|endoftext|>"]
     file_path = r"E:\LLM\CS336\assignment1-basics\data\TinyStoriesV2-GPT4-valid.txt"
+    chunk_token = "<|endoftext|>"
+    special_tokens = ["<|endoftext|>"]
+    vocab_size = 1000
+    vocab_save_path = r"E:\LLM\CS336\assignment1-basics\BPE_tokenizer\vocab.pkl"
+    merge_save_path = r"E:\LLM\CS336\assignment1-basics\BPE_tokenizer\merges.pkl"
+    
 
     bpe_trainer = BPETokenizerTrainer(
         data_path=file_path,
         vocab_size=vocab_size,
         special_tokens=special_tokens,
-        chunk_special_token=chunk_token
+        chunk_special_token=chunk_token,
+        vocab_save_path=vocab_save_path,
+        merge_save_path=merge_save_path
     )
 
     vocab, merges = bpe_trainer.train()
-    # # print(vocab.values())
-    # # print(len(vocab))
-    # # print(len(merges))
-
-    # # Save the vocab
-    # with open(r"cs336_basics\vocab.pkl", "wb") as f:
-    #     pickle.dump(vocab, f)
