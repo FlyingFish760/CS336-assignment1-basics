@@ -9,7 +9,7 @@ import time
 
 from cs336_basics.pretokenization_example import find_chunk_boundaries
 
-NUM_PROCESSES = 4
+# NUM_PROCESSES = 4
 
 
 class ReverseLexOrderPair:
@@ -80,13 +80,16 @@ class BPETokenizerTrainer():
 
     def pretokenize_file(self) -> Dict[Tuple[bytes], int]:
         chunk_token_bytes: bytes = self.chunk_special_token.encode("utf-8")
+
+        num_processes = mp.cpu_count()
         with open(self.data_path, "rb") as f:
-            boundaries = find_chunk_boundaries(f, NUM_PROCESSES, chunk_token_bytes)
+            boundaries = find_chunk_boundaries(f, num_processes, chunk_token_bytes)
             chunk_starts_ends = list(zip(boundaries[:-1], boundaries[1:]))
 
         # Parallel execution
-        with mp.Pool(NUM_PROCESSES) as pool:
+        with mp.Pool(num_processes) as pool:
             results = pool.map(self.process_chunk, chunk_starts_ends)
+        pool.close()
             
         pre_token_counts = {}
         for res in results:
@@ -236,12 +239,12 @@ class BPETokenizerTrainer():
 
 
 if __name__ == "__main__":
-    file_path = r"E:\LLM\CS336\assignment1-basics\data\TinyStoriesV2-GPT4-valid.txt"
+    file_path = "/root/autodl-tmp/CS336-assignment1-basics/data/TinyStoriesV2-GPT4-train.txt"
     chunk_token = "<|endoftext|>"
     special_tokens = ["<|endoftext|>"]
-    vocab_size = 1000
-    vocab_save_path = r"E:\LLM\CS336\assignment1-basics\BPE_tokenizer\vocab.pkl"
-    merge_save_path = r"E:\LLM\CS336\assignment1-basics\BPE_tokenizer\merges.pkl"
+    vocab_size = 10000
+    vocab_save_path = "/root/autodl-tmp/CS336-assignment1-basics/BPE_tokenizer/vocab.pkl"
+    merge_save_path = "/root/autodl-tmp/CS336-assignment1-basics/BPE_tokenizer/merges.pkl"
     
 
     bpe_trainer = BPETokenizerTrainer(
