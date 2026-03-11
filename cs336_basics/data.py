@@ -147,16 +147,17 @@ class PretrainDataset(Dataset):
 
 
 if __name__ == "__main__":
-    x = np.random.randint(low=0, high=100, size=(50))
-    input, target = get_batch(x, batch_size=4, context_length=10)
-    print(input.dtype)
-    print(target)
+    # x = np.random.randint(low=0, high=100, size=(50))
+    # input, target = get_batch(x, batch_size=4, context_length=10)
+    # print(input.dtype)
+    # print(target)
 
-    # data_path = r"E:\LLM\CS336\assignment1-basics\data\TinyStoriesV2-GPT4-train.txt"
-    # tokenizer = AutoTokenizer.from_pretrained("gpt2")
-    # tokenize_file(data_path,
-    #               out_path="../data/TinyStoriesV2-GPT4-train.npy", 
-    #               tokenizer=tokenizer)
+    # Tokenize a .txt file
+    data_path = "/root/autodl-tmp/CS336-assignment1-basics/data/TinyStoriesV2-GPT4-train.txt"
+    tokenizer = AutoTokenizer.from_pretrained("gpt2", local_files_only=True)
+    tokenize_file_new(data_path,
+                  out_path="../data/TinyStoriesV2-GPT4-train.npy", 
+                  tokenizer=tokenizer)
 
     # data_path = r"data\test_data_100.npy"
     # ds = PretrainDataset(data_path, context_length=6)

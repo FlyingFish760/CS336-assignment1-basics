@@ -165,5 +165,3 @@ cython_debug/
 # Own
 data/
 out/
-uv.lock
-pyproject.toml

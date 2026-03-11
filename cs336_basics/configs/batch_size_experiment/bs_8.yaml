@@ -22,8 +22,8 @@ data:
 wandb_logging:
   use_wandb: True
   wandb_team: "cs336_assign1"
-  wandb_project: "test_model_"
-  wandb_run: "test_run"
+  wandb_project: "test_model_batch_size"
+  wandb_run: "bs_8"
   config:
     max_learning_rate: 5.0e-3
     model_size: "test model"
