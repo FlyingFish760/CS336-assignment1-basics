@@ -6,7 +6,7 @@ model_opt_config:
   num_layers: 4
   context_length: 256
   theta: 10000.0
-  max_lr: 1.0e-4
+  max_lr: 5.0e-3
   betas: [0.9, 0.99]
   weight_decay: 1.0e-5
 
@@ -22,8 +22,8 @@ data:
 wandb_logging:
   use_wandb: True
   wandb_team: "cs336_assign1"
-  wandb_project: "test_model_lr_tuning"
+  wandb_project: "test_model_batch_size"
   wandb_run: "test_run"
   config:
-    max_learning_rate: 1.0e-4
+    max_learning_rate: 5.0e-3
     model_size: "test model"
