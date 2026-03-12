@@ -228,8 +228,9 @@ class TransformerBlock(nn.Module):
         d_ff: int Dimensionality of the position-wise feed-forward inner layer.
         '''
         super().__init__()
-        self.attn_norm = RMSNorm(d_model)
-        self.ff_norm = RMSNorm(d_model)
+        if use_LN:
+            self.attn_norm = RMSNorm(d_model)
+            self.ff_norm = RMSNorm(d_model)
         self.attn = MultiheadAttention(
             d_model, 
             num_heads,

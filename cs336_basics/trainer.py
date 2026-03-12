@@ -59,7 +59,7 @@ def train_step(inputs: Int[Tensor, "b seq_len"],
     if wandb_config["use_wandb"]:
         wandb_log = {}
 
-        for k, v in layer_grad_norms:
+        for k, v in layer_grad_norms.items():
             wandb_log["grad_norm/ " + k] = v
         wandb_log["grad_norm/ total_norm"] = global_grad_norm
         wandb_log["train_step"] = step

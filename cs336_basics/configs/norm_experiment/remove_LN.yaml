@@ -23,7 +23,7 @@ data:
 wandb_logging:
   use_wandb: True
   wandb_team: "cs336_assign1"
-  wandb_project: "test_model_"
+  wandb_project: "test_model_modification"
   wandb_run: "test_run"
   config:
     max_learning_rate: 5.0e-3

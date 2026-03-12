@@ -106,7 +106,7 @@ def init_model_optimizer(model_opt_config: dict, device: str):
         context_length=model_opt_config["context_length"],
         theta = model_opt_config["theta"],
         num_layers=model_opt_config["num_layers"],
-        use_LN=model_opt_config[""]
+        use_LN=model_opt_config["use_layer_norm"]
     )
 
     optimizer = AdamW(

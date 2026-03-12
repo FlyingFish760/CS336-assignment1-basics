@@ -9,8 +9,7 @@ def tokenize_file(file_path: str, out_path: str, tokenizer:PreTrainedTokenizer):
     with open(file_path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
-            encoding = tokenizer(line,
-                                 max).input_ids
+            encoding = tokenizer(line, add_special_tokens=False).input_ids
             token_ids.extend(encoding)
     token_ids = np.array(token_ids)
     np.save(out_path, token_ids)
@@ -155,14 +154,14 @@ if __name__ == "__main__":
     # Tokenize a .txt file
     data_path = "/root/autodl-tmp/CS336-assignment1-basics/data/TinyStoriesV2-GPT4-train.txt"
     tokenizer = AutoTokenizer.from_pretrained("gpt2", local_files_only=True)
-    tokenize_file_new(data_path,
-                  out_path="../data/TinyStoriesV2-GPT4-train.npy", 
+    tokenize_file(data_path,
+                  out_path="/root/autodl-tmp/CS336-assignment1-basics/data/TinyStoriesV2-GPT4-train.npy", 
                   tokenizer=tokenizer)
 
-    # data_path = r"data\test_data_100.npy"
+    # data_path = "/root/autodl-tmp/CS336-assignment1-basics/data/TinyStoriesV2-GPT4-valid.npy"
     # ds = PretrainDataset(data_path, context_length=6)
-    # # print(len(ds))
-    # # print(ds.__getitem__(0))
+    # print(len(ds))
+    # print(ds.__getitem__(0)[0].dtype)
 
     # dl = DataLoader(
     #     ds,
