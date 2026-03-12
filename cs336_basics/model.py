@@ -221,7 +221,7 @@ class MultiheadAttention(nn.Module):
         return output
     
 class TransformerBlock(nn.Module):
-    def __init__(self, d_model: int, num_heads: int, d_ff: int, max_seq_len, theta):
+    def __init__(self, d_model: int, num_heads: int, d_ff: int, max_seq_len, theta, use_LN):
         '''
         d_model: int Dimensionality of the Transformer block inputs.
         num_heads: int Number of heads to use in multi-head self-attention.
@@ -241,6 +241,8 @@ class TransformerBlock(nn.Module):
             d_ff
         )
 
+        self.use_LN = use_LN
+
     def forward(self, 
                 x: Float[Tensor, "... seq_len d_model"]) -> Float[Tensor, "... seq_len d_model"]:
         # First sublayer
@@ -249,14 +251,12 @@ class TransformerBlock(nn.Module):
         token_positions = token_positions.expand(*x.shape[:-2], seq_len)
 
         x_res = x
-        x_norm = self.attn_norm(x)
-        x_attn = self.attn(x_norm, token_positions)
+        x_attn = self.attn(self.attn_norm(x), token_positions) if self.use_LN else self.attn(x, token_positions)
         x = x_res + x_attn
 
         # Second sublayer
         x_res = x
-        x_norm = self.ff_norm(x)
-        x_ff = self.ff(x_norm)
+        x_ff = self.ff(self.ff_norm(x)) if self.use_LN else self.ff(x)
         x = x_res + x_ff
 
         return x
@@ -269,7 +269,8 @@ class TransformerLM(nn.Module):
                  d_ff: int, 
                  context_length: int, 
                  theta: float,
-                 num_layers):
+                 num_layers: int,
+                 use_LN: bool = True):
         super().__init__()
         '''
         vocab_size: int — The size of the vocabulary, necessary for determining the dimensionality of
@@ -278,6 +279,12 @@ class TransformerLM(nn.Module):
           of the position embedding matrix.
         num_layers: int — The number of Transformer blocks to use.
         '''
+        # Experiment config indication
+        if use_LN:
+            print("-----------The model is initialized with LayerNorm-----------")
+        else:
+            print("-----------The model is NOT initialized with LayerNorm!!!-----------")
+
         # Token embeddding
         self.token_embedding = Embedding(vocab_size, d_model)
 
@@ -287,7 +294,8 @@ class TransformerLM(nn.Module):
             num_heads,
             d_ff,
             context_length,
-            theta
+            theta,
+            use_LN = use_LN
         ) for _ in range(num_layers)])
 
         # Output layer

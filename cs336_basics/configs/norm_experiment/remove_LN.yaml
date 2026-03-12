@@ -9,7 +9,7 @@ model_opt_config:
   max_lr: 5.0e-3
   betas: [0.9, 0.99]
   weight_decay: 1.0e-5
-  use_layer_norm: True
+  use_layer_norm: False
 
 training:
   warmup_ratio: 0.1
