@@ -93,7 +93,7 @@ if __name__ == "__main__":
     parser.add_argument("--config", type=str, default="./configs/base.yaml", help="Path to config file")
     parser.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu", help="Device for training")
     parser.add_argument("--batch_size", type=int, help="Number of samples per batch")
-    parser.add_argument("--log_step_rate", type=float, default=0.01, help="Rate of train steps to log train loss")
+    # parser.add_argument("--log_step_rate", type=float, default=0.01, help="Rate of train steps to log train loss")
     parser.add_argument("--save_step_rate", type=float, default=0.2, help="Rate of train steps to save checkpoint")
     parser.add_argument("--eval_step_rate", type=float, default=0.1, help="Rate of train steps to evaluate model performance")
     # parser.add_argument("--num_epochs", type=int, default=1, help="Number of training epochs")
@@ -149,7 +149,8 @@ if __name__ == "__main__":
     #--------------Training loop---------------
     # Define steps
     train_steps = len(train_dataloader)
-    log_steps = int(train_steps * args.log_step_rate)
+    # log_steps = int(train_steps * args.log_step_rate)
+    log_steps = 4
     save_steps = int(train_steps * args.save_step_rate)
     eval_steps = int(train_steps * args.eval_step_rate)
 
