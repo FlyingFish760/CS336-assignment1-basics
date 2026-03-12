@@ -12,7 +12,8 @@ import wandb
 
 from cs336_basics.nn_utils import cross_entropy
 from cs336_basics.data import get_batch, PretrainDataset
-from cs336_basics.utils import learning_rate_schedule, save_checkpoint, load_checkpoint, logger, init_model_optimizer
+from cs336_basics.utils import learning_rate_schedule, save_checkpoint, load_checkpoint, \
+    logger, init_model_optimizer, get_layer_grad_norms, get_global_grad_norm
 
 TOKENIZER_VOCAB_SIZE = 50257
 
@@ -49,6 +50,21 @@ def train_step(inputs: Int[Tensor, "b seq_len"],
 
     # Back proporgation (to get gradients)
     loss.backward()
+
+    # Get per-layer and global grad norms
+    layer_grad_norms = get_layer_grad_norms(model)
+    global_grad_norm = get_global_grad_norm(model)
+
+    # Log grad norms
+    if wandb_config["use_wandb"]:
+        wandb_log = {}
+
+        for k, v in layer_grad_norms:
+            wandb_log["grad_norm/ " + k] = v
+        wandb_log["grad_norm/ total_norm"] = global_grad_norm
+        wandb_log["train_step"] = step
+
+        wandb_run.log(wandb_log)
 
     # Optimizer step
     optimizer.step()
@@ -126,6 +142,9 @@ if __name__ == "__main__":
             name=wandb_config["wandb_run"],
             config=wandb_config["config"]
         )
+
+        wandb.define_metric("train_step")
+        wandb.define_metric("grad_norm/*", step_metric="train_step")
     
     #--------------Training loop---------------
     # Define steps

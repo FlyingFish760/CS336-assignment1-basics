@@ -318,7 +318,7 @@ if __name__ == "__main__":
     # token_embedding = embed(token_ids)
     # print(token_embedding.shape)
 
-    x = torch.randn((b, seq_len, d_model))
+    # x = torch.randn((b, seq_len, d_model))
 
     # ffn = FFN(512, 64)
     # x_ffn = ffn(x)
@@ -335,13 +335,13 @@ if __name__ == "__main__":
     # attn = attention(Q, K, V, mask)
     # print(attn.shape)
 
-    mha = MultiheadAttention(
-        d_model,
-        num_heads=4, 
-        max_seq_len=128,
-        theta=10000,
-    )
-    print(mha.parameters())
+    # mha = MultiheadAttention(
+    #     d_model,
+    #     num_heads=4, 
+    #     max_seq_len=128,
+    #     theta=10000,
+    # )
+    # print(mha.parameters())
     # res = mha(x)
     # print(res.shape)
 
@@ -365,6 +365,8 @@ if __name__ == "__main__":
     #     theta=10000,
     #     num_layers=2
     # )
+
+
     # output = lm(token_ids)
     # print(output.shape)
     # print(output)

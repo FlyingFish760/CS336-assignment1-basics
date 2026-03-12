@@ -2,6 +2,7 @@ import os
 import math
 import random
 from collections.abc import Callable, Iterable
+from typing import Dict
 
 import torch
 import torch.nn as nn
@@ -119,6 +120,41 @@ def init_model_optimizer(model_opt_config: dict, device: str):
     model = model.to(device)
     model.compile(mode="reduce-overhead")
     return model, optimizer
+
+# def get_embed_layer_norm(model: nn.Module):
+#     for p 
+
+# def get_trf_layers_norm():
+
+# def get_out_layer_norm():
+
+def get_l2_grad_norm(params: Iterable[nn.Parameter]) -> float:
+    total_grad_norm = 0
+    for p in params:
+        if p.requires_grad:
+            total_grad_norm += p.grad.detach().pow(2).sum()
+
+    return (total_grad_norm ** (1/2)).item()
+
+def get_layer_grad_norms(model: TransformerLM) -> Dict[str, float]:
+    layer_grad_norms = {}
+
+    # Get the grad norm of token embedding layer 
+    embed_params = model.token_embedding.parameters()
+    layer_grad_norms["embedding"] = get_l2_grad_norm(embed_params)
+
+    # Get the grad norm of transformer block layers
+    for i, trf_block in enumerate(model.transformer_blocks):
+        layer_grad_norms[f"transformer_{i+1}"] = get_l2_grad_norm(trf_block.parameters())
+
+    # Get the grad norm of output linear layer 
+    output_params = model.out_proj.parameters()
+    layer_grad_norms["output_linear"] = get_l2_grad_norm(output_params)
+
+    return layer_grad_norms
+
+def get_global_grad_norm(model: TransformerLM) -> float:
+    return get_l2_grad_norm(model.parameters())
 
 if __name__ == "__main__":
 
