@@ -134,7 +134,7 @@ def get_l2_grad_norm(params: Iterable[nn.Parameter]) -> float:
         if p.requires_grad:
             total_grad_norm += p.grad.detach().pow(2).sum()
 
-    return (total_grad_norm ** (1/2)).item()
+    return total_grad_norm.sqrt().item()
 
 def get_layer_grad_norms(model: TransformerLM) -> Dict[str, float]:
     layer_grad_norms = {}
