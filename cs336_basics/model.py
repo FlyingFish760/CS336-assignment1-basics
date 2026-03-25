@@ -213,6 +213,7 @@ class MultiheadAttention(nn.Module):
             token_positions = repeat(token_positions, "... seq_len -> ... h seq_len", h=self.num_heads)
             Q = self.rope(Q, token_positions)   
             K = self.rope(K, token_positions)
+            
         # Compute Multihead-attention
         heads = attention(Q, K, V, mask)   # (... h seq_len d_k)
         multi_heads = rearrange(heads, "... h seq_len d_k -> ... seq_len (h d_k)")

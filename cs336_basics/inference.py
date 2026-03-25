@@ -123,8 +123,9 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained("gpt2", local_files_only=True)
 
     temperature = 0.5
-    thres_p = 1
-    generate(prompt="Once upon a time",
+    thres_p = 0.9
+    prompt="Once upon a time"
+    generate(prompt = prompt,
              tokenizer = tokenizer,
              model=model,
              max_generate_tokens=256,
