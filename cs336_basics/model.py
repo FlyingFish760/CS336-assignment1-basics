@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch import Tensor, LongTensor
 
 from jaxtyping import Bool, Float, Int
-from einops import rearrange, reduce, repeat
+from einops import rearrange, reduce, repeat, einsum
 
 # Local imports
 from cs336_basics.nn_utils import softmax
@@ -309,10 +309,90 @@ class TransformerLM(nn.Module):
             h = layer(h)
         logits = self.out_proj(self.out_norm(h))
         return logits
+    
+
+
+###################### FullAttnRes ######################
+def full_attn_res(query: nn.Parameter, keys: list[Tensor], norm: RMSNorm) -> Tensor:
+    '''
+    Params:
+        query: layer-specific learnable vector. Tensor of size [D]
+        keys: list of outputs of previous layers. N tensors of size [B, T, D]
+
+    Returns:
+        hidden_state: Tensor of size [B, T, D]
+    '''
+    keys_normed = torch.stack([norm(key) for key in keys])
+
+    keys = torch.stack(keys, dim=0)
+    values = keys
+    
+    attn_scores = einsum(query, keys_normed, "d, n b t d -> n b t")
+    attn_weights = torch.softmax(attn_scores, dim=0)
+    hidden_state = einsum(attn_weights, values, "n b t, n b t d -> b t d")
+    return hidden_state
+
+class TrfBlock_FullAttnRes(nn.Module):
+    def __init__(self, d_model: int, d_ff: int, num_heads: int, max_seq_len: int, theta: float):
+        super().__init__()
+
+        self.q1 = nn.Parameter(torch.zeros(d_model))
+        self.norm1 = RMSNorm(
+            d_model
+        )
+        self.mha = MultiheadAttention(
+            d_model,
+            num_heads, 
+            max_seq_len,
+            theta
+        )
+
+        self.q2 = nn.Parameter(torch.zeros(d_model))
+        self.norm2 = RMSNorm(
+            d_model
+        )
+        self.mlp = FFN(
+            d_model,
+            d_ff
+        )
+        
+        
+    def forward(self, layer_outputs: list[Tensor]) -> list[Tensor]:
+        '''
+        Params:
+            layer_outputs: outputs of previous layers
+
+        Returns:
+            layer_outputs: layer outputs with addition to those of this transformer block
+        '''
+        # First layer (MHA)
+        h1 = full_attn_res(
+            query=self.q1,
+            keys=layer_outputs,
+            norm=self.norm1
+        )   # (B T D)
+
+        seq_len = h1.shape[-2]
+        token_positions = torch.arange(seq_len)
+        token_positions = token_positions.expand(*h1.shape[:-2], seq_len)
+        output1 = self.mha(h1, token_positions)
+        layer_outputs.append(output1)
+
+        # Second layer (MLP)
+        h2 = full_attn_res(
+            query=self.q2,
+            keys=layer_outputs,
+            norm=self.norm2
+        )
+        output2 = self.mlp(h2)
+        layer_outputs.append(output2)
+
+        return layer_outputs
+
 
 
 if __name__ == "__main__":
-    b, seq_len, d_model, vocab_size = 4, 16, 512, 5120
+    b, seq_len, d_model, vocab_size, num_heads, d_ff = 4, 16, 512, 5120, 4, 1344
 
     # token_ids = torch.randint(0, vocab_size, (b, seq_len))
     # embed = Embedding(vocab_size, d_model)
@@ -373,4 +453,30 @@ if __name__ == "__main__":
     # print(output)
     # print(lm.state_dict)
 
+
+    #### Test FullAttnRes
+    num_layers = 5
+
+    # Test full_attn_res
+    # query = torch.randn((d_model))
+    # keys = [torch.randn((b, seq_len, d_model)) for _ in range(num_layers)]
+    # norm = RMSNorm(d_model)
+    # res = full_attn_res(query, keys, norm)
+    # print(res.shape)
+
+    # Test TrfBlock_FullAttnRes
+    trf_block_attn_res = TrfBlock_FullAttnRes(
+        d_model, 
+        d_ff,
+        num_heads,
+        seq_len,
+        theta=10000
+    )
+
+    layer_outputs = [torch.randn((b, seq_len, d_model)) for _ in range(num_layers)]
+    new_layer_outputs = trf_block_attn_res(
+        layer_outputs
+    )
+    print(len(new_layer_outputs))
+    print(new_layer_outputs[0].shape)
 
