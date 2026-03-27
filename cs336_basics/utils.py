@@ -164,7 +164,8 @@ def get_l2_grad_norm(params: Iterable[nn.Parameter]) -> float:
 
     return total_grad_norm.sqrt().item()
 
-def get_layer_grad_norms(model: TransformerLM) -> Dict[str, float]:
+def get_layer_grad_norms(model: TransformerLM,
+                         model_arch: str) -> Dict[str, float]:
     layer_grad_norms = {}
 
     # Get the grad norm of token embedding layer 
@@ -172,8 +173,12 @@ def get_layer_grad_norms(model: TransformerLM) -> Dict[str, float]:
     layer_grad_norms["embedding"] = get_l2_grad_norm(embed_params)
 
     # Get the grad norm of transformer block layers
-    for i, trf_block in enumerate(model.transformer_blocks):
-        layer_grad_norms[f"transformer_{i+1}"] = get_l2_grad_norm(trf_block.parameters())
+    if model_arch == "std_Transformer":
+        for i, trf_block in enumerate(model.transformer_blocks):
+            layer_grad_norms[f"transformer_{i+1}"] = get_l2_grad_norm(trf_block.parameters())
+    elif model_arch == "full_attn_res":
+        for i, trf_block in enumerate(model.trf_blocks_full_attn_res):
+            layer_grad_norms[f"transformer_{i+1}"] = get_l2_grad_norm(trf_block.parameters())
 
     # Get the grad norm of output linear layer 
     output_params = model.out_proj.parameters()

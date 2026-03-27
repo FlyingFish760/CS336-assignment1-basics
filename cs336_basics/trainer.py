@@ -52,7 +52,7 @@ def train_step(inputs: Int[Tensor, "b seq_len"],
     loss.backward()
 
     # Get per-layer and global grad norms
-    layer_grad_norms = get_layer_grad_norms(model)
+    layer_grad_norms = get_layer_grad_norms(model, model_arch=model_opt_config["model_architecture"])
     global_grad_norm = get_global_grad_norm(model)
 
     # Log grad norms
