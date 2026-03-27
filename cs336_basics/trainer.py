@@ -92,7 +92,7 @@ if __name__ == "__main__":
     # Trainer config
     parser.add_argument("--config", type=str, default="./configs/base.yaml", help="Path to config file")
     parser.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu", help="Device for training")
-    parser.add_argument("--batch_size", type=int, help="Number of samples per batch")
+    # parser.add_argument("--batch_size", type=int, help="Number of samples per batch")
     # parser.add_argument("--log_step_rate", type=float, default=0.01, help="Rate of train steps to log train loss")
     parser.add_argument("--save_step_rate", type=float, default=0.2, help="Rate of train steps to save checkpoint")
     parser.add_argument("--eval_step_rate", type=float, default=0.1, help="Rate of train steps to evaluate model performance")
@@ -123,14 +123,14 @@ if __name__ == "__main__":
     train_ds = PretrainDataset(data_config["train_data_path"],
                                context_length=data_config["sample_length"])
     train_dataloader = DataLoader(train_ds, 
-                                  batch_size=args.batch_size,
+                                  batch_size=training_config["batch_size"],
                                   shuffle=True,
                                   drop_last=True,
                                   num_workers=0)
     val_ds = PretrainDataset(data_config["val_data_path"],
                              context_length=data_config["sample_length"])
     val_dataloader = DataLoader(val_ds, 
-                                  batch_size=args.batch_size,
+                                  batch_size=training_config["batch_size"],
                                   shuffle=False,
                                   drop_last=True)
 
@@ -179,7 +179,7 @@ if __name__ == "__main__":
 
         # Save checkpoints
         os.makedirs(args.save_dir, exist_ok=True)
-        save_path = f"{args.save_dir}/bs_{args.batch_size}_lr_{model_opt_config["max_lr"]}_{step + 1}.pt"
+        save_path = f"{args.save_dir}/bs_{training_config["batch_size"]}_lr_{model_opt_config["max_lr"]}_{step + 1}.pt"
         if (step + 1) % save_steps == 0:  
             save_checkpoint(model, optimizer, step + 1, save_path)
             cur_time = time.time()

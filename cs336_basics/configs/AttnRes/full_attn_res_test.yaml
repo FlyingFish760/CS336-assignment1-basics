@@ -15,6 +15,7 @@ model_opt_config:
 training:
   warmup_ratio: 0.1
   cosine_ratio: 0.9
+  batch_size: 64
   
 data:
   train_data_path: "../data/TinyStoriesV2-GPT4-train.npy"
