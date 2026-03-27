@@ -1,5 +1,5 @@
 model_opt_config:
-  model_architecture: std_Transformer   # ["std_Transformer", "full_attn_res", "block_attn_res"]
+  model_architecture: full_attn_res   # ["std_Transformer", "full_attn_res", "block_attn_res"]
   vocab_size: 50257
   d_model: 512
   d_ff: 1344
@@ -24,8 +24,8 @@ data:
 wandb_logging:
   use_wandb: True
   wandb_team: "cs336_assign1"
-  wandb_project: "test_model_"
-  wandb_run: "test_run"
+  wandb_project: "full_attn_res"
+  wandb_run: "base"
   config:
     max_learning_rate: 5.0e-3
     model_size: "test model"

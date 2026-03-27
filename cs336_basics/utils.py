@@ -94,20 +94,48 @@ def is_main_process():
     return not dist.is_initialized() or dist.get_rank() == 0
 
 ################### Trainer tools ##############################
-from .model import TransformerLM
+from .model import TransformerLM, TransformerLM_fullAttnRes, TransformerLM_BlockAttnRes
 from .optimizer import AdamW
 
 def init_model_optimizer(model_opt_config: dict, device: str):
-    model = TransformerLM(
-        vocab_size=model_opt_config["vocab_size"],
-        d_model=model_opt_config["d_model"],
-        num_heads= model_opt_config["num_heads"],
-        d_ff = model_opt_config["d_ff"],
-        context_length=model_opt_config["context_length"],
-        theta = model_opt_config["theta"],
-        num_layers=model_opt_config["num_layers"],
-        use_LN=model_opt_config["use_layer_norm"]
-    )
+    model_arch = model_opt_config["model_architecture"]
+    assert model_arch in ["std_Transformer", "full_attn_res", "block_attn_res"], "model_architecture must be 'std_Transformer'/ 'full_attn_res'/ 'block_attn_res'"
+
+    if model_arch == "std_Transformer":
+        print("----------- Model arch: Standard Tranformer -----------")
+        model = TransformerLM(
+            vocab_size=model_opt_config["vocab_size"],
+            d_model=model_opt_config["d_model"],
+            num_heads= model_opt_config["num_heads"],
+            d_ff = model_opt_config["d_ff"],
+            context_length=model_opt_config["context_length"],
+            theta = model_opt_config["theta"],
+            num_layers=model_opt_config["num_layers"],
+            use_LN=model_opt_config["use_layer_norm"]
+        )
+    elif model_arch == "full_attn_res":
+        print("----------- Model arch: Full Attention Residual -----------")
+        model = TransformerLM_fullAttnRes(
+            vocab_size=model_opt_config["vocab_size"],
+            d_model=model_opt_config["d_model"],
+            num_heads= model_opt_config["num_heads"],
+            d_ff = model_opt_config["d_ff"],
+            context_length=model_opt_config["context_length"],
+            theta = model_opt_config["theta"],
+            num_layers=model_opt_config["num_layers"]
+        )
+    # elif model_arch == "block_attn_res":
+    #     print("----------- Model arch: Block Attention Residual -----------")
+    #     model = TransformerLM_BlockAttnRes(
+    #         vocab_size=model_opt_config["vocab_size"],
+    #         d_model=model_opt_config["d_model"],
+    #         num_heads= model_opt_config["num_heads"],
+    #         d_ff = model_opt_config["d_ff"],
+    #         context_length=model_opt_config["context_length"],
+    #         theta = model_opt_config["theta"],
+    #         num_layers=model_opt_config["num_layers"],
+    #         block_size=model_opt_config["block_size"]
+    #     )
 
     optimizer = AdamW(
         model.parameters(),
