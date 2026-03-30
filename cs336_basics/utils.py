@@ -116,13 +116,13 @@ def init_model_optimizer(model_opt_config: dict, device: str):
     elif model_arch == "full_attn_res":
         print("----------- Model arch: Full Attention Residual -----------")
         model = TransformerLM_fullAttnRes(
-            vocab_size=model_opt_config["vocab_size"],
             d_model=model_opt_config["d_model"],
-            num_heads= model_opt_config["num_heads"],
-            d_ff = model_opt_config["d_ff"],
+            d_ff=model_opt_config["d_ff"],
+            num_heads=model_opt_config["num_heads"],
+            num_layers=model_opt_config["num_layers"],
             context_length=model_opt_config["context_length"],
-            theta = model_opt_config["theta"],
-            num_layers=model_opt_config["num_layers"]
+            theta=model_opt_config["theta"],
+            vocab_size=model_opt_config["vocab_size"],
         )
     # elif model_arch == "block_attn_res":
     #     print("----------- Model arch: Block Attention Residual -----------")
@@ -164,8 +164,7 @@ def get_l2_grad_norm(params: Iterable[nn.Parameter]) -> float:
 
     return total_grad_norm.sqrt().item()
 
-def get_layer_grad_norms(model: TransformerLM,
-                         model_arch: str) -> Dict[str, float]:
+def get_layer_grad_norms(model: TransformerLM) -> Dict[str, float]:
     layer_grad_norms = {}
 
     # Get the grad norm of token embedding layer 
@@ -173,12 +172,8 @@ def get_layer_grad_norms(model: TransformerLM,
     layer_grad_norms["embedding"] = get_l2_grad_norm(embed_params)
 
     # Get the grad norm of transformer block layers
-    if model_arch == "std_Transformer":
-        for i, trf_block in enumerate(model.transformer_blocks):
-            layer_grad_norms[f"transformer_{i+1}"] = get_l2_grad_norm(trf_block.parameters())
-    elif model_arch == "full_attn_res":
-        for i, trf_block in enumerate(model.trf_blocks_full_attn_res):
-            layer_grad_norms[f"transformer_{i+1}"] = get_l2_grad_norm(trf_block.parameters())
+    for i, trf_block in enumerate(model.transformer_blocks):
+        layer_grad_norms[f"transformer_{i+1}"] = get_l2_grad_norm(trf_block.parameters())
 
     # Get the grad norm of output linear layer 
     output_params = model.out_proj.parameters()
