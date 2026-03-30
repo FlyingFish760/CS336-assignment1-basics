@@ -124,18 +124,18 @@ def init_model_optimizer(model_opt_config: dict, device: str):
             theta=model_opt_config["theta"],
             vocab_size=model_opt_config["vocab_size"],
         )
-    # elif model_arch == "block_attn_res":
-    #     print("----------- Model arch: Block Attention Residual -----------")
-    #     model = TransformerLM_BlockAttnRes(
-    #         vocab_size=model_opt_config["vocab_size"],
-    #         d_model=model_opt_config["d_model"],
-    #         num_heads= model_opt_config["num_heads"],
-    #         d_ff = model_opt_config["d_ff"],
-    #         context_length=model_opt_config["context_length"],
-    #         theta = model_opt_config["theta"],
-    #         num_layers=model_opt_config["num_layers"],
-    #         block_size=model_opt_config["block_size"]
-    #     )
+    elif model_arch == "block_attn_res":
+        print("----------- Model arch: Block Attention Residual -----------")
+        model = TransformerLM_BlockAttnRes(
+            d_model=model_opt_config["d_model"],
+            d_ff=model_opt_config["d_ff"],
+            num_heads=model_opt_config["num_heads"],
+            num_layers=model_opt_config["num_layers"],
+            context_length=model_opt_config["context_length"],
+            theta=model_opt_config["theta"],
+            vocab_size=model_opt_config["vocab_size"],
+            block_size=model_opt_config["block_size"],
+        )
 
     optimizer = AdamW(
         model.parameters(),

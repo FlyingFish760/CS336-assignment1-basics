@@ -334,65 +334,6 @@ def attn_res(query: nn.Parameter, keys: list[Tensor], norm: RMSNorm) -> Tensor:
     hidden_state = einsum(attn_weights, values, "n b t, n b t d -> b t d")
     return hidden_state
 
-# class TrfBlock_FullAttnRes(nn.Module):
-#     def __init__(self, d_model: int, d_ff: int, num_heads: int, max_seq_len: int, theta: float):
-#         super().__init__()
-
-#         self.q1 = nn.Parameter(torch.zeros(d_model))
-#         self.attn_res_norm1 = RMSNorm(
-#             d_model
-#         )
-#         self.attn_norm = RMSNorm(d_model)
-#         self.mha = MultiheadAttention(
-#             d_model,
-#             num_heads, 
-#             max_seq_len,
-#             theta
-#         )
-
-#         self.q2 = nn.Parameter(torch.zeros(d_model))
-#         self.attn_res_norm2 = RMSNorm(
-#             d_model
-#         )
-#         self.mlp_norm = RMSNorm(d_model)
-#         self.mlp = FFN(
-#             d_model,
-#             d_ff
-#         )
-        
-#     def forward(self, layer_outputs: list[Tensor]) -> list[Tensor]:
-#         '''
-#         Params:
-#             layer_outputs: outputs of previous layers
-
-#         Returns:
-#             layer_outputs: layer outputs with addition to those of this transformer block
-#         '''
-#         # First layer (MHA)
-#         h1 = attn_res(
-#             query=self.q1,
-#             keys=layer_outputs,
-#             norm=self.attn_res_norm1
-#         )   # (B T D)
-
-#         seq_len = h1.shape[-2]
-#         token_positions = torch.arange(seq_len)
-#         token_positions = token_positions.expand(*h1.shape[:-2], seq_len)
-
-#         output1 = self.mha(self.attn_norm(h1), token_positions)
-#         layer_outputs.append(output1)
-
-#         # Second layer (MLP)
-#         h2 = attn_res(
-#             query=self.q2,
-#             keys=layer_outputs,
-#             norm=self.attn_res_norm2
-#         )
-#         output2 = self.mlp(self.mlp_norm(h2))
-#         layer_outputs.append(output2)
-
-#         return layer_outputs
-
 class TrfBlock_FullAttnRes(TransformerBlock):
     def __init__(self, 
                  d_model, 
@@ -580,7 +521,7 @@ class TransformerLM_BlockAttnRes(nn.Module):
         self.token_embedding = Embedding(vocab_size, d_model)
 
         # Transformer blocks using block attention residual
-        self.trf_blocks_block_attn_res = nn.ModuleList([TrfBlock_BlockAttnRes(
+        self.transformer_blocks = nn.ModuleList([TrfBlock_BlockAttnRes(
             d_model,
             d_ff,
             num_heads,
@@ -603,7 +544,7 @@ class TransformerLM_BlockAttnRes(nn.Module):
 
         # Transformer layers with block attn res 
         block_outputs, partial_sum = [h1], None
-        for layer in self.trf_blocks_block_attn_res:
+        for layer in self.transformer_blocks:
             block_outputs, partial_sum = layer(block_outputs, partial_sum, self.block_size)
         
         # Output layer
