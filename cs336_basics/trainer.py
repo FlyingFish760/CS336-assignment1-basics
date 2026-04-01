@@ -13,7 +13,7 @@ import wandb
 from cs336_basics.nn_utils import cross_entropy
 from cs336_basics.data import get_batch, PretrainDataset
 from cs336_basics.utils import learning_rate_schedule, save_checkpoint, load_checkpoint, \
-    logger, init_model_optimizer, get_layer_grad_norms, get_global_grad_norm, compute_llama3_train_batches
+    logger, init_model_optimizer, get_layer_grad_norms, get_global_grad_norm, compute_perplexity, compute_llama3_train_batches
 
 TOKENIZER_VOCAB_SIZE = 50257
 FLOPS_BUDGET = 1.626 * 10 ** 18
@@ -21,7 +21,7 @@ FLOPS_BUDGET = 1.626 * 10 ** 18
 
 def train_step(inputs: Int[Tensor, "b seq_len"],
                 targets: Int[Tensor, "b seq_len"],
-                step: int) -> Float[Tensor, ""]:
+                step: int) -> tuple[Float[Tensor, ""], Float[Tensor, ""]]:
     '''
     One training epoch of the complete given data.
 
@@ -46,8 +46,9 @@ def train_step(inputs: Int[Tensor, "b seq_len"],
     # Forward pass
     logits = model(inputs)
 
-    # Compute loss
+    # Compute loss/ perplexity
     loss = cross_entropy(logits, targets)
+    perplexity = compute_perplexity(loss)
 
     # Back proporgation (to get gradients)
     loss.backward()
@@ -70,9 +71,9 @@ def train_step(inputs: Int[Tensor, "b seq_len"],
     # Optimizer step
     optimizer.step()
 
-    return loss
+    return loss, perplexity
 
-def evaluate():
+def evaluate() -> tuple[Float[Tensor, ""], Float[Tensor, ""]]:
     model.eval()
 
     total_loss = 0
@@ -84,7 +85,10 @@ def evaluate():
             loss = cross_entropy(logits, targets)
             total_loss += loss
 
-    return total_loss / (step + 1)
+    avg_loss = total_loss / (step + 1)
+    ppl = compute_perplexity(avg_loss)
+
+    return avg_loss, ppl
 
 
 if __name__ == "__main__":
@@ -167,7 +171,7 @@ if __name__ == "__main__":
         # Train 
         inputs = inputs.to(args.device)
         targets = targets.to(args.device)
-        train_loss = train_step(inputs, targets, step)
+        train_loss, train_ppl = train_step(inputs, targets, step)
 
         # Log training performance
         if (step + 1) % log_steps == 0 or (step + 1) == train_steps:
@@ -179,6 +183,7 @@ if __name__ == "__main__":
             if wandb_config["use_wandb"]:
                 wandb_log = {
                     "train loss": train_loss,
+                    "train perplexity": train_ppl,
                     "lr": lr,
                     "spent time (min)": spent_time
                 }
@@ -197,7 +202,7 @@ if __name__ == "__main__":
 
         # Evaluate validation loss
         if (step + 1) % eval_steps == 0 or (step + 1) == train_steps:
-            val_loss = evaluate()
+            val_loss, val_ppl = evaluate()
             cur_time = time.time()
             spent_time = (cur_time - start_time) // 60
             log_info = f"(Step: {step + 1}/{train_steps}), val_loss: {val_loss:.4f}, spent time: {spent_time}min"
@@ -205,6 +210,7 @@ if __name__ == "__main__":
             if wandb_config["use_wandb"]:
                 wandb_log = {
                     "val loss": val_loss,
+                    "val perplexity": val_ppl,
                     "spent time (min)": spent_time
                 }
                 wandb_run.log(wandb_log)

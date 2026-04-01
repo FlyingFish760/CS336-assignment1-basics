@@ -5,8 +5,10 @@ from collections.abc import Callable, Iterable
 from typing import Dict
 
 import torch
+from torch import Tensor
 import torch.nn as nn
 import torch.distributed as dist
+from jaxtyping import Float
 import numpy as np
 
 
@@ -231,6 +233,18 @@ def compute_llama3_train_batches(
     num_batches = flops_budget // flops_per_batch
 
     return num_batches
+
+def compute_perplexity(loss: Float[Tensor, ""]) -> Float[Tensor, ""]:
+    '''
+    perplexity = exp(1/m * (loss_1 + loss_2 + ... + loss_m)) for a sequnce tokens of length m
+
+    Args:
+        loss: Float[Tensor, ""]. Average loss over a batch of losses
+
+    Returns:
+        perplexity: Float[Tensor, ""]
+    '''
+    return torch.exp(loss)
 
 if __name__ == "__main__":
 
