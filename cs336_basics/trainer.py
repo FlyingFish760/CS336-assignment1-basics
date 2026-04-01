@@ -7,6 +7,7 @@ import numpy as np
 import torch
 from torch import Tensor
 from torch.utils.data import DataLoader
+from torch.nn.utils import clip_grad_norm_
 from jaxtyping import Int, Float
 import wandb
 
@@ -52,6 +53,8 @@ def train_step(inputs: Int[Tensor, "b seq_len"],
 
     # Back proporgation (to get gradients)
     loss.backward()
+    if training_config["use_grad_clip"]:
+        clip_grad_norm_(model.parameters(), max_norm=training_config["grad_clipping"])
 
     # Get per-layer and global grad norms
     layer_grad_norms = get_layer_grad_norms(model)
