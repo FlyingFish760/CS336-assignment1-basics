@@ -4,16 +4,16 @@ from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
 from transformers import PreTrainedTokenizer, AutoTokenizer
 
-def tokenize_file(file_path: str, out_path: str, tokenizer:PreTrainedTokenizer):
-    token_ids = []
-    with open(file_path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            encoding = tokenizer(line, add_special_tokens=False).input_ids
-            token_ids.extend(encoding)
-    token_ids = np.array(token_ids)
-    np.save(out_path, token_ids)
-    print(f"Tokenized data saved to '{out_path}'!")
+# def tokenize_file(file_path: str, out_path: str, tokenizer:PreTrainedTokenizer):
+#     token_ids = []
+#     with open(file_path, "r", encoding="utf-8") as f:
+#         for line in f:
+#             line = line.strip()
+#             encoding = tokenizer(line, add_special_tokens=False).input_ids
+#             token_ids.extend(encoding)
+#     token_ids = np.array(token_ids)
+#     np.save(out_path, token_ids)
+#     print(f"Tokenized data saved to '{out_path}'!")
 
 
 def tokenize_file_new(
@@ -129,7 +129,8 @@ class PretrainDataset(Dataset):
         data_path: str. Path to a one sequnence token ids file, should be in np.adarray format.
         '''
         super().__init__()
-        self.token_ids = np.load(data_path, mmap_mode="r")
+        # self.token_ids = np.load(data_path, mmap_mode="r")
+        self.token_ids = np.memmap(data_path, dtype=np.int64, mode="r")
         self.context_length = context_length
         self.dtype = dtype
 
