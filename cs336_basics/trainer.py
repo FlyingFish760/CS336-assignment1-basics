@@ -13,9 +13,10 @@ import wandb
 from cs336_basics.nn_utils import cross_entropy
 from cs336_basics.data import get_batch, PretrainDataset
 from cs336_basics.utils import learning_rate_schedule, save_checkpoint, load_checkpoint, \
-    logger, init_model_optimizer, get_layer_grad_norms, get_global_grad_norm
+    logger, init_model_optimizer, get_layer_grad_norms, get_global_grad_norm, compute_llama3_train_batches
 
 TOKENIZER_VOCAB_SIZE = 50257
+FLOPS_BUDGET = 1.626 * 10 ** 18
 
 
 def train_step(inputs: Int[Tensor, "b seq_len"],
@@ -148,7 +149,13 @@ if __name__ == "__main__":
     
     #--------------Training loop---------------
     # Define steps
-    train_steps = len(train_dataloader)
+    # train_steps = len(train_dataloader)
+    train_steps = compute_llama3_train_batches(
+        FLOPS_BUDGET,
+        training_config["batch_size"],
+        **model_opt_config
+    )
+    print(f"---------- Total training steps is {train_steps} ----------")
     # log_steps = int(train_steps * args.log_step_rate)
     log_steps = 4
     save_steps = int(train_steps * args.save_step_rate)

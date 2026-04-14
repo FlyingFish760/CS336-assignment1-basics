@@ -189,6 +189,54 @@ def get_layer_grad_norms(model: TransformerLM,
 def get_global_grad_norm(model: TransformerLM) -> float:
     return get_l2_grad_norm(model.parameters())
 
+def compute_llama3_FLOPs(**kwargs) -> int:
+    seq_len = kwargs["seq_len"]
+    d_model = kwargs["d_model"]
+    d_ff = kwargs["d_ff"]
+    num_heads = kwargs["num_heads"]
+    d_head = kwargs["d_head"]
+    vocab_size = kwargs["vocab_size"]
+    num_layers = kwargs["num_layers"]
+
+    ######## MHA ########
+
+    # Q/K/V projection
+    flops_qkv_proj = 3 * 2 * seq_len * d_model * (num_heads * d_head)  # (H, B, D_h)
+    # Q @ K -> logits
+    flops_qk_logits = 2 * num_heads * seq_len * d_head * seq_len   # (H, B, B)
+    # softmax(logits) -> weights
+    flops_softmax_logits = 3 * num_heads * seq_len * seq_len   # (H, B, B)
+    # weights * V 
+    flops_query_reduction = 2 * num_heads * seq_len * seq_len * d_head   # (H, B, D_h)
+    # final linear
+    flops_attn_linear = 2 * seq_len * (num_heads * d_head) * d_model
+
+    # total
+    flops_attn = flops_qkv_proj + flops_qk_logits + flops_softmax_logits + flops_query_reduction + flops_attn_linear
+
+    ######## Feed Forward (use SwiGLU) ########
+    flops_ff = 3 * 2 * seq_len * d_model * d_ff
+
+    ######## Final logits ########
+    flops_final_logits = 2 * seq_len * d_model * vocab_size
+    flops_final_softmax = 3 * seq_len * vocab_size
+
+
+    forward_flops = num_layers * (flops_attn + flops_ff) + flops_final_logits + flops_final_softmax
+    total_training_flops = forward_flops * 3
+    return total_training_flops
+
+def compute_llama3_train_batches(
+        flops_budget,
+        batch_size,
+        **cfg
+) -> int:
+    flops_per_seq = compute_llama3_FLOPs(**cfg)
+    flops_per_batch = batch_size * flops_per_seq
+    num_batches = flops_budget // flops_per_batch
+
+    return num_batches
+
 if __name__ == "__main__":
 
     test_model_config = {
