@@ -187,11 +187,11 @@ def get_global_grad_norm(model: TransformerLM) -> float:
     return get_l2_grad_norm(model.parameters())
 
 def compute_llama3_FLOPs(**kwargs) -> int:
-    seq_len = kwargs["seq_len"]
+    seq_len = kwargs["context_length"]
     d_model = kwargs["d_model"]
     d_ff = kwargs["d_ff"]
     num_heads = kwargs["num_heads"]
-    d_head = kwargs["d_head"]
+    d_head = d_model // num_heads
     vocab_size = kwargs["vocab_size"]
     num_layers = kwargs["num_layers"]
 

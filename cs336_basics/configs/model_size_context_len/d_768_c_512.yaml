@@ -16,6 +16,8 @@ training:
   warmup_ratio: 0.1
   cosine_ratio: 0.9
   batch_size: 64
+  use_grad_clip: True
+  grad_clipping: 1.0
   
 data:
   train_data_path: "../data/TinyStoriesV2-GPT4-train.npy"
