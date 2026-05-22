@@ -3,8 +3,8 @@ model_opt_config:
   vocab_size: 50257
   d_model: 768
   d_ff: 2048
-  num_heads: 16
-  num_layers: 8
+  num_heads: 12
+  num_layers: 12
   context_length: 512
   theta: 10000.0
   max_lr: 5.0e-4
@@ -28,6 +28,11 @@ wandb_logging:
   use_wandb: True
   wandb_team: "cs336_assign1"
   wandb_project: "owt"
-  wandb_run: "d_768_c_512"
+  wandb_run: "d_768_h_12_c_512"
   config:
     max_learning_rate: 5.0e-4
+    d_model: 768
+    num_layers: 12
+    num_heads: 12
+    grad_clipping: 1.0
+    context_len: 512

@@ -166,3 +166,5 @@ cython_debug/
 data/
 out/
 wandb/
+pyproject.toml
+uv.lock
