@@ -48,36 +48,37 @@ def compute_llama3_train_batches(
 
 
 if __name__ == "__main__":
-    seq_len      = 4096
-    d_model      = 4096
-    d_ff         = 11008
-    num_heads    = 32
-    d_head       = 128
-    num_layers   = 32
-    vocab_size   = 32000
+    # seq_len      = 4096
+    # d_model      = 4096
+    # d_ff         = 11008
+    # num_heads    = 32
+    # d_head       = 128
+    # num_layers   = 32
+    # vocab_size   = 32000
 
-    # model_config1 = {
-    #     "seq_len": 256,
-    #     "d_model": 512,
-    #     "d_ff": 1344,
-    #     "num_heads": 16,
-    #     "d_head": 32,
-    #     "num_layers": 4,
-    #     "vocab_size": 50257
-    # }
+    model_config = {
+        "seq_len": 256,
+        "d_model": 512,
+        "d_ff": 1344,
+        "num_heads": 16,
+        "d_head": 32,
+        "num_layers": 4,
+        "vocab_size": 50257
+    }
 
     # Test compute_llama3_FLOPs
-    # llama3_training_flops = compute_llama3_FLOPs(
-    #     seq_len=seq_len,
-    #     d_model=d_model,
-    #     d_ff=d_ff,
-    #     num_heads=num_heads,
-    #     d_head=d_head,
-    #     vocab_size=vocab_size,
-    #     num_layers=num_layers,
-    # )
+    llama3_training_flops = compute_llama3_FLOPs(
+        # seq_len=seq_len,
+        # d_model=d_model,
+        # d_ff=d_ff,
+        # num_heads=num_heads,
+        # d_head=d_head,
+        # vocab_size=vocab_size,
+        # num_layers=num_layers,
+        **model_config
+    )
 
-    # print(f"Estimated training FLOPs is {llama3_training_flops:.3e}")
+    print(f"Estimated training FLOPs is {llama3_training_flops:.3e}")
 
     # Test compute_llama3_train_batch
     # flops_budget = 5.025 * 10 ** 16
