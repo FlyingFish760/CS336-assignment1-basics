@@ -17,7 +17,7 @@ from cs336_basics.utils import learning_rate_schedule, save_checkpoint, load_che
     logger, init_model_optimizer, get_layer_grad_norms, get_global_grad_norm, compute_perplexity, compute_llama3_train_batches
 
 TOKENIZER_VOCAB_SIZE = 50257
-FLOPS_BUDGET = 1.626 * 10 ** 18
+# FLOPS_BUDGET = 1.626 * 10 ** 18
 
 
 def train_step(inputs: Int[Tensor, "b seq_len"],
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     # Define steps
     # train_steps = len(train_dataloader)
     train_steps = compute_llama3_train_batches(
-        FLOPS_BUDGET,
+        training_config["compute_flops"],
         training_config["batch_size"],
         **model_opt_config
     )

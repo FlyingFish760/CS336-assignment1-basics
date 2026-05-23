@@ -57,12 +57,12 @@ if __name__ == "__main__":
     # vocab_size   = 32000
 
     model_config = {
-        "seq_len": 256,
-        "d_model": 512,
-        "d_ff": 1344,
+        "seq_len": 512,
+        "d_model": 768,
+        "d_ff": 2048,
         "num_heads": 16,
-        "d_head": 32,
-        "num_layers": 4,
+        "d_head": 48,
+        "num_layers": 8,
         "vocab_size": 50257
     }
 
@@ -81,13 +81,13 @@ if __name__ == "__main__":
     print(f"Estimated training FLOPs is {llama3_training_flops:.3e}")
 
     # Test compute_llama3_train_batch
-    # flops_budget = 5.025 * 10 ** 16
+    # flops_budget = 1.6 * 10 ** 18
     # batch_size = 64
 
     # num_batches = compute_llama3_train_batches(
     #     flops_budget,
     #     batch_size,
-    #     **model_config1
+    #     **model_config
     # )
     # print(f"Estimated number of training batches is {num_batches}")
 
