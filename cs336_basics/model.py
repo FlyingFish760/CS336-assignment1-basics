@@ -273,7 +273,8 @@ class TransformerLM(nn.Module):
                  context_length: int, 
                  theta: float,
                  num_layers: int,
-                 use_LN: bool = True):
+                 use_LN: bool = True,
+                 use_weight_tying: bool = False):
         super().__init__()
         '''
         vocab_size: int — The size of the vocabulary, necessary for determining the dimensionality of
@@ -304,6 +305,9 @@ class TransformerLM(nn.Module):
         # Output layer
         self.out_norm = RMSNorm(d_model)
         self.out_proj = Linear(d_model, vocab_size)
+        if use_weight_tying:
+            print("-----------The model is initialized with weight tying-----------")
+            self.out_proj.W = self.token_embedding.embed_mat
 
     def forward(self, x: Float[Tensor, "... seq_len"]) -> Float[Tensor, "... seq_len vocab_size"]:
         h = self.token_embedding(x)   # (... seq_len d_model)
