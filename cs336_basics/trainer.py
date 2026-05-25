@@ -218,5 +218,8 @@ if __name__ == "__main__":
                 }
                 wandb_run.log(wandb_log)
 
+        if step == train_steps:
+            break
+
     if wandb_config["use_wandb"]:
         wandb_run.finish()

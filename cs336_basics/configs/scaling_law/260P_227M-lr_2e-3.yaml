@@ -1,13 +1,13 @@
 model_opt_config:
   model_architecture: std_Transformer   # ["std_Transformer", "full_attn_res", "block_attn_res"]
   vocab_size: 50257
-  d_model: 768
-  d_ff: 2048
+  d_model: 1024
+  d_ff: 2688
   num_heads: 16
-  num_layers: 8
+  num_layers: 10
   context_length: 512
   theta: 10000.0
-  max_lr: 3.0e-3
+  max_lr: 2.0e-3
   betas: [0.9, 0.99]
   weight_decay: 1.0e-5
   use_layer_norm: True
@@ -29,7 +29,7 @@ wandb_logging:
   use_wandb: True
   wandb_team: "cs336_assign1"
   wandb_project: "scaling_law"
-  wandb_run: "C_260P_N_134M"
+  wandb_run: "C_260P_N_227M_lr_2e-3"
   config:
-    max_learning_rate: 3.0e-3
-    model_size: "134M"
+    max_learning_rate: 2.0e-3
+    model_size: "227M"
