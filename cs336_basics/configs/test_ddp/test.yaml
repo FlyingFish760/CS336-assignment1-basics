@@ -18,10 +18,11 @@ training:
   batch_size: 64
   use_grad_clip: True
   grad_clipping: 1.0
+  compute_flops: 2.6e+17
   
 data:
-  train_data_path: "../data/TinyStoriesV2-GPT4-train.npy"
-  val_data_path: "../data/TinyStoriesV2-GPT4-valid.npy"
+  train_data_path: "../data/owt_train.npy"
+  val_data_path: "../data/owt_valid.npy"
   sample_length: 256
 
 wandb_logging:

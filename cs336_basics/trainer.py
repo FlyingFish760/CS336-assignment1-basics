@@ -60,11 +60,11 @@ def train_step(inputs: Int[Tensor, "b seq_len"],
         clip_grad_norm_(model.parameters(), max_norm=training_config["grad_clipping"])
 
     # Get per-layer and global grad norms
-    layer_grad_norms = get_layer_grad_norms(model)
-    global_grad_norm = get_global_grad_norm(model)
+    layer_grad_norms = get_layer_grad_norms(raw_model)
+    global_grad_norm = get_global_grad_norm(raw_model)
 
     # Log grad norms
-    if wandb_config["use_wandb"]:
+    if wandb_run:
         wandb_log = {}
 
         for k, v in layer_grad_norms.items():
@@ -151,9 +151,6 @@ if __name__ == "__main__":
         num_workers=8,
         pin_memory=True
     )
-    if is_main_process(): 
-        print(f"*****************example batch:{next(iter(train_dataloader))[0].shape}*********************")
-        print(f"*****************steps of dataloader:{len(train_dataloader)}*********************")
 
     if is_main_process():    # Only do evaluation in the main process
         val_ds = PretrainDataset(data_config["val_data_path"],
@@ -169,8 +166,10 @@ if __name__ == "__main__":
     if dist.is_initialized():
         model._ddp_params_and_buffers_to_ignore = {"sin", "cos"}
         model = DistributedDataParallel(model, device_ids=[local_rank])  # DDP 在 backward() 时自动做 All-Reduce，同步所有卡的梯度
+    raw_model = model.module if isinstance(model, DistributedDataParallel) else model
 
     #--------------Init wandb---------------
+    wandb_run = None
     if wandb_config["use_wandb"] and is_main_process():
         wandb_run = wandb.init(
             entity=wandb_config["wandb_team"],
@@ -180,7 +179,7 @@ if __name__ == "__main__":
         )
 
         wandb.define_metric("train_step")
-        wandb.define_metric("grad_norm/*", step_metric="train_step")
+        wandb.define_metric("grad_norm/*", step_metric="train_step")    
     
     #--------------Training loop---------------
     # Define steps
@@ -211,7 +210,7 @@ if __name__ == "__main__":
             spent_time = (cur_time - start_time) // 60
             log_info = f"(Step: {step + 1}/{train_steps}), train_loss: {train_loss:.4f}, lr: {lr:.6f}, spent time: {spent_time}min"
             logger(log_info)
-            if wandb_config["use_wandb"]:
+            if wandb_run:
                 wandb_log = {
                     "train loss": train_loss,
                     "train perplexity": train_ppl,
@@ -224,7 +223,7 @@ if __name__ == "__main__":
         if (step + 1) % save_steps == 0 and is_main_process():  
             os.makedirs(args.save_dir, exist_ok=True)
             save_path = f"{args.save_dir}/bs_{training_config["batch_size"]}_lr_{model_opt_config["max_lr"]}_{step + 1}.pt"
-            save_checkpoint(model, optimizer, step + 1, save_path)
+            save_checkpoint(raw_model, optimizer, step + 1, save_path)
             cur_time = time.time()
             spent_time = (cur_time - start_time) // 60
             log_info = f"(Step: {step + 1}/{train_steps}), saved checkpoint to {save_path}, spent time: {spent_time}min"
@@ -238,7 +237,7 @@ if __name__ == "__main__":
             spent_time = (cur_time - start_time) // 60
             log_info = f"(Step: {step + 1}/{train_steps}), val_loss: {val_loss:.4f}, spent time: {spent_time}min"
             logger(log_info)
-            if wandb_config["use_wandb"]:
+            if wandb_run:
                 wandb_log = {
                     "val loss": val_loss,
                     "val perplexity": val_ppl,
@@ -252,7 +251,7 @@ if __name__ == "__main__":
         if step == train_steps:
             break
 
-    if wandb_config["use_wandb"]:
+    if wandb_run:
         wandb_run.finish()
 
     if dist.is_initialized(): dist.destroy_process_group()
