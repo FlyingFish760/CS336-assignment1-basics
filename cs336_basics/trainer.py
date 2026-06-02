@@ -6,7 +6,9 @@ import yaml
 import numpy as np
 import torch
 from torch import Tensor
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, DistributedSampler, BatchSampler
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel
 from torch.nn.utils import clip_grad_norm_
 from jaxtyping import Int, Float
 import wandb
@@ -14,7 +16,8 @@ import wandb
 from cs336_basics.nn_utils import cross_entropy
 from cs336_basics.data import get_batch, PretrainDataset
 from cs336_basics.utils import learning_rate_schedule, save_checkpoint, load_checkpoint, \
-    logger, init_model_optimizer, get_layer_grad_norms, get_global_grad_norm, compute_perplexity, compute_llama3_train_batches
+    logger, init_model_optimizer, get_layer_grad_norms, get_global_grad_norm, compute_perplexity, \
+    compute_llama3_train_batches, setup_seed, init_distributed_mode, is_main_process
 
 TOKENIZER_VOCAB_SIZE = 50257
 # FLOPS_BUDGET = 1.626 * 10 ** 18
@@ -118,7 +121,13 @@ if __name__ == "__main__":
     training_config = cfg["training"]
     wandb_config = cfg["wandb_logging"]
 
-    #--------------Set up model, optimizer---------------
+    #--------------Set up environment/GPU ranks and random seed---------------
+    local_rank = init_distributed_mode()
+    total_ranks = dist.get_world_size() if dist.is_initialized() else 1
+    if dist.is_initialized(): args.device = f"cuda:{local_rank}"
+    setup_seed(42 + (dist.get_rank() if dist.is_initialized() else 0))
+
+    #--------------Set up model, optimizer, and data loading---------------
     model, optimizer = init_model_optimizer(model_opt_config, args.device)
 
     # Load checkpoints if needed
@@ -127,23 +136,42 @@ if __name__ == "__main__":
     else:
         start_step = 0
 
-    #--------------Set up dataloader---------------
     train_ds = PretrainDataset(data_config["train_data_path"],
                                context_length=data_config["sample_length"])
-    train_dataloader = DataLoader(train_ds, 
-                                  batch_size=training_config["batch_size"],
-                                  shuffle=True,
-                                  drop_last=True,
-                                  num_workers=0)
-    val_ds = PretrainDataset(data_config["val_data_path"],
-                             context_length=data_config["sample_length"])
-    val_dataloader = DataLoader(val_ds, 
-                                  batch_size=training_config["batch_size"],
-                                  shuffle=False,
-                                  drop_last=True)
+    train_sampler = DistributedSampler(train_ds) if dist.is_initialized() else None
+    indices = torch.randperm(len(train_ds)).tolist()
+    batch_sampler = BatchSampler(
+        train_sampler or indices,
+        batch_size=training_config["batch_size"] // total_ranks,
+        drop_last=True
+    )
+    train_dataloader = DataLoader(
+        train_ds,
+        batch_sampler=batch_sampler,
+        num_workers=8,
+        pin_memory=True
+    )
+    if is_main_process(): 
+        print(f"*****************example batch:{next(iter(train_dataloader))[0].shape}*********************")
+        print(f"*****************steps of dataloader:{len(train_dataloader)}*********************")
+
+    if is_main_process():    # Only do evaluation in the main process
+        val_ds = PretrainDataset(data_config["val_data_path"],
+                                context_length=data_config["sample_length"])
+        val_dataloader = DataLoader(val_ds, 
+                                    batch_size=training_config["batch_size"],
+                                    shuffle=False,
+                                    drop_last=True,
+                                    num_workers=8,
+                                    pin_memory=True)
+
+    #--------------Wrap model using DDP---------------
+    if dist.is_initialized():
+        model._ddp_params_and_buffers_to_ignore = {"sin", "cos"}
+        model = DistributedDataParallel(model, device_ids=[local_rank])  # DDP 在 backward() 时自动做 All-Reduce，同步所有卡的梯度
 
     #--------------Init wandb---------------
-    if wandb_config["use_wandb"]:
+    if wandb_config["use_wandb"] and is_main_process():
         wandb_run = wandb.init(
             entity=wandb_config["wandb_team"],
             project=wandb_config["wandb_project"],
@@ -193,9 +221,9 @@ if __name__ == "__main__":
                 wandb_run.log(wandb_log)
 
         # Save checkpoints
-        os.makedirs(args.save_dir, exist_ok=True)
-        save_path = f"{args.save_dir}/bs_{training_config["batch_size"]}_lr_{model_opt_config["max_lr"]}_{step + 1}.pt"
-        if (step + 1) % save_steps == 0:  
+        if (step + 1) % save_steps == 0 and is_main_process():  
+            os.makedirs(args.save_dir, exist_ok=True)
+            save_path = f"{args.save_dir}/bs_{training_config["batch_size"]}_lr_{model_opt_config["max_lr"]}_{step + 1}.pt"
             save_checkpoint(model, optimizer, step + 1, save_path)
             cur_time = time.time()
             spent_time = (cur_time - start_time) // 60
@@ -204,7 +232,7 @@ if __name__ == "__main__":
 
 
         # Evaluate validation loss
-        if (step + 1) % eval_steps == 0 or (step + 1) == train_steps:
+        if ((step + 1) % eval_steps == 0 or (step + 1) == train_steps) and is_main_process():
             val_loss, val_ppl = evaluate()
             cur_time = time.time()
             spent_time = (cur_time - start_time) // 60
@@ -226,3 +254,5 @@ if __name__ == "__main__":
 
     if wandb_config["use_wandb"]:
         wandb_run.finish()
+
+    if dist.is_initialized(): dist.destroy_process_group()
