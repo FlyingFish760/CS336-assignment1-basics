@@ -58,11 +58,11 @@ if __name__ == "__main__":
 
     model_config = {
         "seq_len": 512,
-        "d_model": 768,
-        "d_ff": 2048,
+        "d_model": 512,
+        "d_ff": 1344,
         "num_heads": 16,
-        "d_head": 48,
-        "num_layers": 8,
+        "d_head": 32,
+        "num_layers": 4,
         "vocab_size": 50257
     }
 

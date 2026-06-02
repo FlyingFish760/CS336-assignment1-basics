@@ -244,9 +244,6 @@ if __name__ == "__main__":
                     "spent time (min)": spent_time
                 }
                 wandb_run.log(wandb_log)
-        
-        if step == train_steps:
-            break
 
         if step == train_steps:
             break
